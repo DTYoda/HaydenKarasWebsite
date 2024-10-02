@@ -1,5 +1,4 @@
 import "./globals.css";
-import Navigation from "@/_components/navigation";
 
 export const metadata = {
   title: "Hayden Karas",
@@ -8,13 +7,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex-1 flex-col">
-        <Navigation />
-        <main className="max-w-7xl mx-auto">
-          {children}
-        </main>
+    <html lang="en" className="scroll-smooth snap-y snap-mandatory">
+      <body className="min-h-screen h-fit w-[100vw] m-0 p-0">
+        {children}
       </body>
     </html>
-  );
-}
+  )
+};
