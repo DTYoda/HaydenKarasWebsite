@@ -1,75 +1,133 @@
-'use client'
-import { useState } from "react"
+"use client";
+import { useState } from "react";
+import DropDown from "./educationdropdown";
+import EdcuationTable from "./educationtable";
 
 export default function EducationSection() {
-    let [currentCategory, setCategory] = useState("coursework");
-    let categories = ["coursework", "certifications", "courses"];
+  let [currentCategory, setCategory] = useState("coursework");
+  let categories = ["coursework", "certifications", "courses", "awards"];
 
-    let tableContent = {
-        coursework: [
-            ["Introduction to Technology", "2021-2022", "A+"],
-            ["AP Computer Science A", "2022-2023", "A+"],
-            ["AP Computer Science P", "2023-2024", "A+"],
-            ["AP Physics I", "2023-2024", "A+"],
-            ["AP Statistics", "2023-2024", "A+"],
-            ["AP Calculus AB", "2023-2024", "A+"],
-            ["Programming with Python Dual Enrollment", "2023-2024", "A+"],
-            ["AP Calculus BC", "2024-2025", "A+"],
-            ["Cyber Security Dual Enrollment", "2024-2025", "A+"],
-        ],
-        certifications: [
-            ["Web Development", "2022", "YouScience"],
-            ["Game Development", "2022", "YouScience"],
-            ["Computer Science P", "2023", "YouScience"],
-            ["Game Development Profficiency", "2023", "Unity"],
-            ["Programming I", "2024", "YouScience"],
-            ["Programming II (Python)", "2024", "YouScience"],
-        ],
-        courses: [
-            ["CS50x", "2021-2022", "Harvard Universiity"],
-            ["Create with Code", "2022-2023", "Unity"],
-            ["Junior Programmer", "2024-2025", "Unity"],
-            ["Full Stack Web Development", "2024", "Udemy"]
-        ]
-    };
+  let [currentIndex, setIndex] = useState("");
 
-    return (<div className="h-screen w-screen flex flex-col">
-        <div className="flex justify-center shrink-0 gap-8 sm:text-3xl text-xl h-14">
-            {categories.map(category => <button key={category} className={"hover:underline " + (currentCategory == category ? "underline" : "")} onClick={() => {setCategory(category)}}>{category}</button>)}
-        </div>
-        <div className="flex justify-center items-center grow">
-            <table className="border-4 divide-y divide-gray-200 dark:divide-neutral-700 max-w-7xl w-[100vw] h-[90%]">
-                <thead>
-                    {currentCategory == "coursework" && <tr>
-                        <th className="w-[50%] px-6 py-3 text-start text-xs font-medium uppercase text-neutral-500">Class</th>
-                        <th className="w-[25%] px-6 py-3 text-start text-xs font-medium uppercase text-neutral-500">Year</th>
-                        <th className="w-[25%] px-6 py-3 text-start text-xs font-medium uppercase text-neutral-500">Grade</th>
-                    </tr>}
+  let tableContent = {
+    coursework: [
+      ["AP Computer Science A", "2022-2023", "A+"],
+      ["AP Computer Science P", "2023-2024", "A+"],
+      ["AP Physics I", "2023-2024", "A+"],
+      ["AP Statistics", "2023-2024", "A+"],
+      ["AP Calculus AB/BC", "2023-2024", "A+"],
+      ["Programming with Python Dual Enrollment", "2023-2024", "A+"],
+      ["Cyber Security Dual Enrollment", "2024-2025", "A+"],
+    ],
+    certifications: [
+      {
+        title: "Web Development",
+        desc: "YouScience certification exam that covers the fundementals of HTML, CSS, and JavsScript, as well as best practices and vocabulary. This exam was taken as a part of my Digital Media class in 2022",
+        link: "YouScience",
+        linkName: "View the Certificate",
+      },
+      {
+        title: "Computer Science P",
+        desc: "YouScience certification exam that covers the fundementals of computer science, algorithms, binary, and logic, as well as best practices, internet saftey, and ethics. This exam was taken as a part of my Digital Media class in 2023",
+        link: "YouScience",
+        linkName: "View the Certificate",
+      },
+      {
+        title: "Game Development Profficiency",
+        desc: "This certification was given at the SkillsUSA Natioal Game Development competition to students who demonstrated profficiency in the Game Developemnt fundementals and scored high enough on the rubric. This certification is signed by executives at Epic Games and Unity",
+        link: "YouScience",
+        linkName: "View the Certificate",
+      },
+      {
+        title: "Programming I",
+        desc: "YouScience certification on the fundementals of programming. Covers functions, algorithms, variables, and much more. Taken independanty in 2024, recieving a score of 100%.",
+        link: "YouScience",
+        linkName: "View the Certificate",
+      },
+      {
+        title: "Programming II (Python)",
+        desc: "YouScience certification covering object oriented programming within python. Covering inheritance, constructors, inner functions, and much more. Taken independanty in 2024.",
+        link: "YouScience",
+        linkName: "View the Certificate",
+      },
+      {
+        title: "Game Development",
+        desc: "YouScience exam covering the basics of video game development, covering character/level design, the steps of game development, development process, and much more. Taken in 2022 as a part of my Interactive Digital Media class",
+        link: "YouScience",
+        linkName: "View the Certificate",
+      },
+    ],
+    courses: [
+      {
+        title: "CS50x: Introduction to Computer Science by Harvard University",
+        desc: "A famous Computer Science course free online for anybody to take. Covers C, Python, SQL, Flask, Web Development, Algorithms, and much more. Paid for verified certficate and completed the 'advanced' route for each problem set. Completed course thorughout freshman and sophomore year of highschool, and created a full-stack web application with SQL, Flask, and Python for final project.",
+        link: "",
+        linkName: "View the Certificate",
+      },
+      {
+        title: "Create with Code by Unity",
+        desc: "Unity project that brings you through the fundementals of the game engine, covers use of the C# programming language, game objects, events, and much more. Taken as a part of my Interactive Digital Media Class at school, and created various small projects while taking the course",
+        link: "",
+        linkName: "View the Course",
+      },
+      {
+        title: "Junior Programmer by Unity",
+        desc: "An addition to the Create with Code course, Junior Programmer focuses more heavily on the use of the C# programming language rather than the Unity Game Engine as a whole. Coveres everything from basic variables to Coroutines, functions, and much more. Taken as a part of my Interactive Digital Media Class.",
+        link: "",
+        linkName: "View the Course",
+      },
+      {
+        title: "Full Stack Web Development Course by Udemy",
+        desc: "This >100 hour course goes in detail to everything needed to be a full-stack web developer. The course brings you though various projects and learning activities to teach advanced HTMl, CSS, JavaScript, NodeJS, ExpressJS, ReactJS, SQL, and more. The course covers everything from simple examples to high level projects This course was done independantly throughout 2024",
+        link: "",
+        linkName: "View the Course",
+      },
+    ],
+    awards: [
+      ["Game Development State Competition 1st Place (2023)", "2022", "Unity"],
+      ["Game Development State Competition 1st Place (2024)", "2022", "Unity"],
+      ["Game Development National Profficiency (2023)", "2023", "YouScience"],
+      ["Game Development National Profficiency (2024)", "2023", "YouScience"],
+    ],
+  };
 
-                    {currentCategory == "certifications" && <tr>
-                        <th className="w-[50%] px-6 py-3 text-start text-xs font-medium uppercase text-neutral-500">Certification</th>
-                        <th className="w-[25%] px-6 py-3 text-start text-xs font-medium uppercase text-neutral-500">Year</th>
-                        <th className="w-[25%] px-6 py-3 text-start text-xs font-medium uppercase text-neutral-500">Company</th>
-                    </tr>}
-
-                    {currentCategory == "courses" && <tr>
-                        <th className="w-[50%] px-6 py-3 text-start text-xs font-medium uppercase text-neutral-500">Course</th>
-                        <th className="w-[25%] px-6 py-3 text-start text-xs font-medium uppercase text-neutral-500">Year</th>
-                        <th className="w-[25%] px-6 py-3 text-start text-xs font-medium uppercase text-neutral-500">Company</th>
-                    </tr>}
-                    
-                </thead>
-                
-                    <tbody>
-                        {tableContent[currentCategory].map((row, index) => (
-                            <tr key={index}>
-                                <td className="px-6 py-4 whitespace-nowrap text-lg font-medium text-gray-900 dark:text-neutral-400">{row[0]}</td>
-                                <td>{row[1]}</td>
-                                <td>{row[2]}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-            </table>
-        </div>
-    </div>)
+  return (
+    <div className="h-screen w-screen flex flex-col">
+      <h1 className="sm:text-[4vw] text-[10vw] p-8 text-center text-7xl uppercase">
+        EDUCATION
+      </h1>
+      <div className="flex justify-center flex-wrap shrink-0 gap-8 sm:text-3xl text-xl h-14">
+        {categories.map((category) => (
+          <button
+            key={category}
+            className={
+              "hover:underline " +
+              (currentCategory == category ? "underline" : "")
+            }
+            onClick={() => {
+              setCategory(category);
+            }}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-col items-center grow">
+        {tableContent[currentCategory].map((index) => {
+          return (
+            <div className="py-4">
+              <DropDown
+                title={index["title"]}
+                desc={index["desc"]}
+                onClick={setIndex}
+                currentActive={currentIndex}
+                to={index["link"]}
+                linkName={index["linkName"]}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
