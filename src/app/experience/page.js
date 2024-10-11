@@ -2,8 +2,14 @@ import Navigation from "../_components/navigation";
 import SkillsSection from "../_components/skillsection";
 import EducationSection from "../_components/educationsection";
 import StartQuote from "../_components/startquote";
+import { PrismaClient } from "@prisma/client";
 
-export default function Experience() {
+export default async function Experience() {
+  const prisma = new PrismaClient();
+
+  const skills = await prisma.Skills.findMany();
+  const education = await prisma.Education.findMany();
+
   return (
     <div className="flex flex-col items-center min-h-screen">
       <div className="flex flex-col h-screen w-screen">
@@ -15,8 +21,8 @@ export default function Experience() {
           />
         </div>
       </div>
-      <SkillsSection />
-      <EducationSection />
+      <SkillsSection skills={skills} />
+      <EducationSection education={education} />
     </div>
   );
 }
