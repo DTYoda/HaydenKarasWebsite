@@ -3,7 +3,7 @@
 import SkillsChart from "./skillchart";
 import { useState } from "react";
 
-export default function SkillsSection() {
+export default function SkillsSection({ skills }) {
   let [activeCategory, setActiveCategory] = useState("languages");
 
   return (
@@ -46,7 +46,7 @@ export default function SkillsSection() {
         </button>
       </div>
       <div className="w-[80vw]">
-        <SkillsChart activeCategory={activeCategory} />
+        <SkillsChart activeCategory={activeCategory} skills={skills} />
       </div>
     </div>
   );
