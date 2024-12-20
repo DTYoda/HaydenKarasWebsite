@@ -8,8 +8,9 @@ export default function Contact() {
         <Navigation />
         <div className="w-screen flex justify-center grow">
           <StartQuote
-            quote="Communication - the human connection - is the key to personal and career success."
+            quote="Communication—the human connection—is the key to personal and career success."
             author="Paul J. Meyer"
+            links={["LinkedIn", "GitHub"]}
           />
         </div>
       </div>

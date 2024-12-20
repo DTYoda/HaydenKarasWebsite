@@ -18,10 +18,13 @@ export default async function Experience() {
           <StartQuote
             quote="Real knowledge is to know the extent of one's ignorance."
             author="Confucius"
+            links={["Abilities", "Education"]}
           />
         </div>
       </div>
+      <a id="1"></a>
       <SkillsSection skills={skills} />
+      <a id="2"></a>
       <EducationSection education={education} />
     </div>
   );

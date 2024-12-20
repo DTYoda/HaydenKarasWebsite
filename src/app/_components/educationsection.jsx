@@ -18,7 +18,7 @@ export default function EducationSection({ education }) {
           <button
             key={i}
             className={
-              "hover:underline " +
+              "hover:underline decoration-orange-500 " +
               (currentCategory == category ? "underline" : "")
             }
             onClick={() => {
