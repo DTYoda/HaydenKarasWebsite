@@ -1,4 +1,5 @@
 import Navigation from "../_components/navigation";
+import PortfolioSection from "../_components/portfoliosection";
 import StartQuote from "../_components/startquote";
 
 export default function Portfolio() {
@@ -10,8 +11,12 @@ export default function Portfolio() {
           <StartQuote
             quote="The only place success comes before work is in the dictionary."
             author="Vince Lombardi"
+            links={["GitHub", "LinkedIn"]}
           />
         </div>
+      </div>
+      <div>
+        <PortfolioSection />
       </div>
     </div>
   );

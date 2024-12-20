@@ -28,3 +28,12 @@ model Education {
   link String
   linkText String
 }
+
+model Projects {
+  id String @id @default(cuid())
+  urlTitle String
+  title String
+  descriptions String // { descriptionTitle: Description }
+  images String // [imageURL, imageURL...]
+  links String // [{links: [], images: [], titles: [], title: string}]
+}

@@ -1,23 +1,28 @@
-export default function StartQuote({ quote, author }) {
+export default function StartQuote({ quote, author, links }) {
   return (
     <div className="max-w-5xl grow flex flex-col justify-center overflow-hidden">
-      <h1 className="font-bold sm:text-7xl text-5xl">{'"' + quote + '"'}</h1>
+      <h1 className="font-bold sm:text-7xl text-5xl">
+        <span className="text-orange-500">{'"'}</span>
+        {quote}
+        <span className="text-orange-500">{'"'}</span>
+      </h1>
       <ul>
         <li className="sm:text-5xl text-3xl mt-8">
-          {"> "} {author}
+          <span className="text-orange-500">{">"}</span>
+          {author}
         </li>
         <li>
           <a
             href="#1"
-            className="hover:underline transition-all hover:font-bold m-4"
+            className="hover:underline transition-all decoration-orange-500  m-4"
           >
-            abilties
+            {links[0]}
           </a>
           <a
             href="#2"
-            className="hover:underline transition-all hover:font-bold m-4"
+            className="hover:underline transition-all decoration-orange-500  m-4"
           >
-            education
+            {links[1]}
           </a>
         </li>
       </ul>
