@@ -17,7 +17,7 @@ export default function Background() {
       <div className="flex flex-col-reverse md:flex-row h-full">
         <div className="md:w-1/2 w-full p-4">
           <p className="lg:text-[1.2vw] md:text-[1.6vw] sm-text-[2vw] text-[4vw]">
-            My journey into the world of technology began with a fascination for
+            { "My journey into the world of technology began with a fascination for
             how things work and a relentless curiosity to dig deeper. Starting
             with the idea of creating Minecraft mods in third grade, I started
             with game development with scratch and then slowly learned new
@@ -25,7 +25,7 @@ export default function Background() {
             began entering technology classes and doing various projects. This
             resulted in entering the SkillsUSA game development competition,
             winning states two years in a row and placing top 10 nationally
-            twice.{" "}
+            twice." }{ " "}
           </p>
           <br />
           <p className="lg:text-[1.2vw] md:text-[1.6vw] sm-text-[2vw] text-[4vw]">
