@@ -14,26 +14,37 @@ datasource db {
 }
 
 model Skills {
-  id String @id @default(cuid())
-  category String
-  name String
+  id          String @id @default(cuid())
+  category    String
+  name        String
   description String
 }
 
 model Education {
-  id String @id @default(cuid())
-  category String
-  name String
+  id          String @id @default(cuid())
+  category    String
+  name        String
   description String
-  link String
-  linkText String
+  link        String
+  linkText    String
 }
 
 model Projects {
-  id String @id @default(cuid())
-  urlTitle String
-  title String
-  descriptions String // { descriptionTitle: Description }
-  images String // [imageURL, imageURL...]
-  links String // [{links: [], images: [], titles: [], title: string}]
+  id             Int              @id @default(autoincrement())
+  urlTitle       String
+  title          String
+  descriptions   String // { descriptionTitle: Description }
+  images         String // [imageURL, imageURL...]
+  links          String // [{links: [], images: [], titles: [], title: string}]
+  ProjectsButton ProjectsButton[]
+}
+
+model ProjectsButton {
+  id        Int      @id @default(autoincrement())
+  projectID Int
+  project   Projects @relation(fields: [projectID], references: [id])
+  title     String
+  link      String
+  type      String
+  date      String
 }
