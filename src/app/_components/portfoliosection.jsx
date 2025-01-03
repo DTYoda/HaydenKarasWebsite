@@ -4,9 +4,7 @@ import { PrismaClient } from "@prisma/client";
 
 export default async function PortfolioSection() {
   const prisma = new PrismaClient();
-  const projects = await prisma.ProjectsButton.findMany();
-
-  console.log(projects);
+  const projects = await prisma.projects.findMany();
 
 
   return (
