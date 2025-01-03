@@ -20,8 +20,7 @@ export default function AdminPage() {
           });
         if(response.status == 200)
         {
-            console.log("1");
-            router.replace('/admin')
+            
         }
     }
 
@@ -46,7 +45,7 @@ export default function AdminPage() {
 
 
 
-    if(true)
+    if(false)
     {
         return <div className="w-full min-h-screen flex flex-col items-center gap-8">
             <div className="xl:w-[60vw] md:w-[80vw] w-[100vw] mt-8">
