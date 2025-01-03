@@ -15,14 +15,14 @@ datasource db {
 
 model Skills {
   id          String @id @default(cuid())
-  category    String
+  category    String // ["languages", "frameworks", "skills"]
   name        String
   description String
 }
 
 model Education {
   id          String @id @default(cuid())
-  category    String
+  category    String // ["coursework", "certifications", "courses", "awards"];
   name        String
   description String
   link        String
@@ -30,21 +30,13 @@ model Education {
 }
 
 model Projects {
-  id             Int              @id @default(autoincrement())
+  id             String              @id @default(cuid())
   urlTitle       String
   title          String
   descriptions   String // { descriptionTitle: Description }
   images         String // [imageURL, imageURL...]
   links          String // [{links: [], images: [], titles: [], title: string}]
-  ProjectsButton ProjectsButton[]
-}
-
-model ProjectsButton {
-  id        Int      @id @default(autoincrement())
-  projectID Int
-  project   Projects @relation(fields: [projectID], references: [id])
-  title     String
-  link      String
-  type      String
-  date      String
+  technologies   String @default("[]") // []
+  type           String @default("website")
+  date           String @default("undefined")
 }
