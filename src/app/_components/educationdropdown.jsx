@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function DropDown({
   title,
@@ -33,12 +34,13 @@ export default function DropDown({
         }
       >
         <p className={isActive ? "" : "hidden"}>{desc}</p>
-        <a
+        <Link
           href={to}
           className={"text-white underline " + (isActive ? "" : "hidden")}
+          rel="noopener noreferrer" target="_blank"
         >
           {linkName}
-        </a>
+        </Link>
       </div>
     </div>
   );
