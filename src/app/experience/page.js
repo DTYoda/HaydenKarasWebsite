@@ -4,6 +4,11 @@ import EducationSection from "../_components/educationsection";
 import StartQuote from "../_components/startquote";
 import { PrismaClient } from "@prisma/client";
 
+export const metadata = {
+  title: "Hayden Karas | Experience",
+  description: "The experience page for Hayden Karas, a software engineer from Cranston, Rhode Island.",
+};
+
 export default async function Experience() {
   const prisma = new PrismaClient();
 

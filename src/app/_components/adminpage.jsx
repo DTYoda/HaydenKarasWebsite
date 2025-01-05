@@ -1,8 +1,8 @@
 "use client"
 
-import { PrismaClient } from "@prisma/client";
 import { useState } from "react";
 import { useRouter } from "next/navigation"
+
 export default function AdminPage() {
     
     const [skills, setSkills] = useState({category: "languages", name: "", description: "", type: "new", oldName: ""});

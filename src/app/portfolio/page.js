@@ -2,6 +2,11 @@ import Navigation from "../_components/navigation";
 import PortfolioSection from "../_components/portfoliosection";
 import StartQuote from "../_components/startquote";
 
+export const metadata = {
+  title: "Hayden Karas | Portfolio",
+  description: "The portfolio for Hayden Karas, a software engineer from Cranston, Rhode Island.",
+};
+
 export default function Portfolio() {
   return (
     <div>

@@ -3,6 +3,10 @@ import StartQuote from "../_components/startquote";
 import WhoAmI from "../_components/whoami";
 import Background from "../_components/background";
 
+export const metadata = {
+  title: "Hayden Karas | About",
+  description: "The about page for Hayden Karas, a software engineer from Cranston, Rhode Island.",
+};
 export default function About() {
   return (
     <div>
