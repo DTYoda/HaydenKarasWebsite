@@ -23,7 +23,7 @@ export default async function Experience() {
           <StartQuote
             quote="Real knowledge is to know the extent of one's ignorance."
             author="Confucius"
-            links={["Abilities", "Education"]}
+            links={[["#1", "Abilities"], ["#2", "Education"], ["https://leetcode.com/u/DTYoda/", "LeetCode"]]}
           />
         </div>
       </div>
