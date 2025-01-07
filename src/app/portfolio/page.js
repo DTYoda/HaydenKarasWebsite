@@ -16,7 +16,7 @@ export default function Portfolio() {
           <StartQuote
             quote="The only place success comes before work is in the dictionary."
             author="Vince Lombardi"
-            links={["GitHub", "LinkedIn"]}
+            links={[["https://github.com/DTYoda?tab=repositories", "GitHub"], ["https://www.linkedin.com/in/haydenkaras/", "LinkedIn"], ["/resume.pdf", "Resume"]]}
           />
         </div>
       </div>

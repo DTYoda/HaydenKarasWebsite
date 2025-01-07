@@ -16,7 +16,7 @@ export default function About() {
           <StartQuote
             quote="Quality is not an act, it is a habit."
             author="Aristotle"
-            links={["Who Am I?", "My Journey"]}
+            links={[["#1", "Who Am I?"], ["#2","My Journey"]]}
           />
         </div>
       </div>

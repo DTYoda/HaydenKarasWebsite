@@ -35,7 +35,7 @@ model Projects {
   title          String
   descriptions   String // { descriptionTitle: Description }
   images         String // [imageURL, imageURL...]
-  links          String // [{links: [], images: [], titles: [], title: string}]
+  links          String // [{link: , image: , title: string}]
   technologies   String @default("[]") // []
   type           String @default("website")
   date           String @default("undefined")
