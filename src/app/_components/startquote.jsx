@@ -14,7 +14,16 @@ export default function StartQuote({ quote, author, links }) {
           {author}
         </li>
         <li>
-          {links.map((link) =>  <Link className="hover:underline transition-all decoration-orange-500  m-4" target={link[0][0] != "#" ? "_blank" : ""} href={link[0]}>{link[1]}</Link>)}
+          {links.map((link, id) => (
+            <Link
+              key={id}
+              className="hover:underline transition-all decoration-orange-500  m-4"
+              target={link[0][0] != "#" ? "_blank" : ""}
+              href={link[0]}
+            >
+              {link[1]}
+            </Link>
+          ))}
         </li>
       </ul>
       <div className="h-1/3 w-4"></div>
