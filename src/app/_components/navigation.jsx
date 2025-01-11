@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function Navigation() {
-  console.log(usePathname);
   const active = usePathname();
 
   return (

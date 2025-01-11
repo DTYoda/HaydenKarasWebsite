@@ -1,6 +1,5 @@
 import Link from "next/link";
 export default function StartQuote({ quote, author, links }) {
-  console.log(links);
   return (
     <div className="max-w-5xl grow flex flex-col justify-center overflow-hidden">
       <h1 className="font-bold sm:text-7xl text-5xl">

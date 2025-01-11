@@ -19,7 +19,6 @@ export default async function ProjectPage({ params }) {
   let desc = JSON.parse(projectData.descriptions);
   let images = JSON.parse(projectData.images);
   images.shift();
-  console.log(projectData.links);
   let links = JSON.parse(projectData.links);
   let technologies = JSON.parse(projectData.technologies);
 

@@ -1,28 +1,23 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Skills {
   id          String @id @default(cuid())
-  category    String // ["languages", "frameworks", "skills"]
+  category    String
   name        String
   description String
 }
 
 model Education {
   id          String @id @default(cuid())
-  category    String // ["coursework", "certifications", "courses", "awards"];
+  category    String
   name        String
   description String
   link        String
@@ -30,13 +25,13 @@ model Education {
 }
 
 model Projects {
-  id             String              @id @default(cuid())
-  urlTitle       String
-  title          String
-  descriptions   String // { descriptionTitle: Description }
-  images         String // [imageURL, imageURL...]
-  links          String // [{link: , image: , title: string}]
-  technologies   String @default("[]") // []
-  type           String @default("website")
-  date           String @default("undefined")
+  id           String @id @default(cuid())
+  urlTitle     String
+  title        String
+  descriptions String
+  images       String
+  links        String
+  technologies String @default("[]")
+  type         String @default("website")
+  date         String @default("undefined")
 }
