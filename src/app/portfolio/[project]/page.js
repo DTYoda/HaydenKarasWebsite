@@ -47,6 +47,7 @@ export default async function ProjectPage({ params }) {
                   key={id}
                   title={tech.title}
                   href={tech.link}
+                  target="_blank"
                   className=" h-full w-24 flex justify-center items-center"
                 >
                   <Image
@@ -71,6 +72,7 @@ export default async function ProjectPage({ params }) {
                   key={id}
                   title={link.title}
                   href={link.link}
+                  target="_blank"
                   className=" h-full w-24 flex justify-center items-center"
                 >
                   <Image
@@ -87,14 +89,14 @@ export default async function ProjectPage({ params }) {
           <div>
             Date
             <div className="border-orange-800 border-4  rounded-lg min-h-14 flex justify-center items-center h-20">
-              <p className="text-[3vw]">{projectData.date}</p>
+              <p className="text-[4vw] md:text-[2vw]">{projectData.date}</p>
             </div>
           </div>
 
           <div>
             Type
             <div className="border-orange-800 border-4  rounded-lg min-h-14 h-20 flex justify-center items-center">
-              <p className="text-[3vw]">{projectData.type}</p>
+              <p className="text-[4vw] md:text-[2vw]">{projectData.type}</p>
             </div>
           </div>
         </div>
