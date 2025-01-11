@@ -13,7 +13,7 @@ export default function EducationSection({ education }) {
       <h1 className="sm:text-[4vw] text-[10vw] p-8 text-center text-7xl uppercase">
         EDUCATION
       </h1>
-      <div className="flex justify-center flex-wrap shrink-0 gap-8 sm:text-3xl text-xl h-14">
+      <div className="flex justify-center flex-wrap shrink-0 xs:gap-8 gap-2 sm:text-3xl text-lg h-14  ">
         {categories.map((category, i) => (
           <button
             key={i}
