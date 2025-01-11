@@ -3,7 +3,8 @@ import StartQuote from "../_components/startquote";
 
 export const metadata = {
   title: "Hayden Karas | Contact",
-  description: "The contact page for Hayden Karas, a software engineer from Cranston, Rhode Island.",
+  description:
+    "The contact page for Hayden Karas, a software engineer from Cranston, Rhode Island.",
 };
 export default function Contact() {
   return (
@@ -14,7 +15,10 @@ export default function Contact() {
           <StartQuote
             quote="Communication—the human connection—is the key to personal and career success."
             author="Paul J. Meyer"
-            links={["LinkedIn", "GitHub"]}
+            links={[
+              ["https://www.linkedin.com/in/haydenkaras/", "LinkedIn"],
+              ["https://mailto:hkaras1121@gmail.com", "hkaras1121@gmail.com"],
+            ]}
           />
         </div>
       </div>
