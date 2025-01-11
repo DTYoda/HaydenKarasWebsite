@@ -25,19 +25,20 @@ export default function DropDown({
         }}
       >
         <p className="text-left">{title}</p>
-        <p>^</p>
+        <p>{isActive ? "^" : "˅"}</p>
       </button>
       <div
         className={
-          "rounded-b-lg transition-all max-w-5xl w-screen bg-gray-900 " +
+          "rounded-b-lg transition-all max-w-5xl w-screen bg-gray-900 overflow-scroll " +
           (isActive ? "h-56 p-8" : "h-0")
         }
       >
-        <p className={isActive ? "" : "hidden"}>{desc}</p>
+        <p className={"" + (isActive ? "" : " hidden")}>{desc}</p>
         <Link
           href={to}
           className={"text-white underline " + (isActive ? "" : "hidden")}
-          rel="noopener noreferrer" target="_blank"
+          rel="noopener noreferrer"
+          target="_blank"
         >
           {linkName}
         </Link>
