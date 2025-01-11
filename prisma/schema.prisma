@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = "file:/Users/haydenkaras/Documents/hayden-karas-website/prisma/dev.db"
 }
 
 model Skills {
