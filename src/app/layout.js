@@ -2,9 +2,14 @@ import "./globals.css";
 
 export const metadata = {
   title: "Hayden Karas",
-  description: "The homepage for Hayden Karas, a software engineer from Cranston, Rhode Island.",
+  description:
+    "The homepage for Hayden Karas, a software engineer from Cranston, Rhode Island.",
   icons: {
-    icon: '/icon.jpg', // /public path
+    icon: "/icon.jpg", // /public path
+  },
+  themeColor: "black",
+  other: {
+    colorScheme: "dark", // Adds <meta name="color-scheme" content="dark">
   },
 };
 
