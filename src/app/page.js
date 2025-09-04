@@ -2,6 +2,12 @@ import Navigation from "./_components/navigation";
 import PortfolioResult from "./_components/portfolioresult";
 import Link from "next/link";
 
+export const metadata = {
+  title: "Hayden Karas",
+  description:
+    "Efficient software developer and passionate learner, Hayden Karas, showcases innovation in computer science, game development, and digital solutions. Explore a hub of creativity, leadership, and impactful projects.",
+};
+
 export default function Home() {
   return (
     <div>
@@ -21,13 +27,28 @@ export default function Home() {
                 <span className="text-orange-500">{">"}</span>Mathematician
               </li>
               <li>
-                <Link rel="noopener noreferrer" href="/resume.pdf" target="_blank" className="hover:underline transition-all decoration-orange-500  m-4">
+                <Link
+                  rel="noopener noreferrer"
+                  href="/resume.pdf"
+                  target="_blank"
+                  className="hover:underline transition-all decoration-orange-500  m-4"
+                >
                   Resume
                 </Link>
-                <Link rel="noopener noreferrer" href="https://www.linkedin.com/in/haydenkaras/" target="_blank" className="hover:underline transition-all decoration-orange-500  m-4">
+                <Link
+                  rel="noopener noreferrer"
+                  href="https://www.linkedin.com/in/haydenkaras/"
+                  target="_blank"
+                  className="hover:underline transition-all decoration-orange-500  m-4"
+                >
                   LinkedIn
                 </Link>
-                <Link rel="noopener noreferrer" href="https://github.com/DTYoda" target="_blank" className="hover:underline transition-all decoration-orange-500  m-4">
+                <Link
+                  rel="noopener noreferrer"
+                  href="https://github.com/DTYoda"
+                  target="_blank"
+                  className="hover:underline transition-all decoration-orange-500  m-4"
+                >
                   GitHub
                 </Link>
               </li>

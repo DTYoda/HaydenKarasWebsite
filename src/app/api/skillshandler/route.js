@@ -25,7 +25,6 @@ export async function POST(req) {
       }
       else if(body.type == "edit")
       {
-        console.log(body.oldName);
         const editSkill = await prisma.skills.updateMany(
           {
             where: {

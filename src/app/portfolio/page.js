@@ -4,7 +4,8 @@ import StartQuote from "../_components/startquote";
 
 export const metadata = {
   title: "Hayden Karas | Portfolio",
-  description: "The portfolio for Hayden Karas, a software engineer from Cranston, Rhode Island.",
+  description:
+    "Explore Hayden Karas’ dynamic projects, including game development, full-stack web applications, and astrophysics research. Showcasing programming prowess in Python, Java, and more to create real-world impact.",
 };
 
 export default function Portfolio() {
@@ -16,7 +17,11 @@ export default function Portfolio() {
           <StartQuote
             quote="The only place success comes before work is in the dictionary."
             author="Vince Lombardi"
-            links={[["https://github.com/DTYoda?tab=repositories", "GitHub"], ["https://www.linkedin.com/in/haydenkaras/", "LinkedIn"], ["/resume.pdf", "Resume"]]}
+            links={[
+              ["https://github.com/DTYoda?tab=repositories", "GitHub"],
+              ["https://www.linkedin.com/in/haydenkaras/", "LinkedIn"],
+              ["/resume.pdf", "Resume"],
+            ]}
           />
         </div>
       </div>
