@@ -5,7 +5,8 @@ import Background from "../_components/background";
 
 export const metadata = {
   title: "Hayden Karas | About",
-  description: "The about page for Hayden Karas, a software engineer from Cranston, Rhode Island.",
+  description:
+    "Meet Hayden Karas: a dedicated learner and leader in computer science and mathematics, with a passion for bridging the digital divide. Discover his journey from coding beginnings to impactful projects and leadership roles.",
 };
 export default function About() {
   return (
@@ -16,7 +17,10 @@ export default function About() {
           <StartQuote
             quote="Quality is not an act, it is a habit."
             author="Aristotle"
-            links={[["#1", "Who Am I?"], ["#2","My Journey"]]}
+            links={[
+              ["#1", "Who Am I?"],
+              ["#2", "My Journey"],
+            ]}
           />
         </div>
       </div>

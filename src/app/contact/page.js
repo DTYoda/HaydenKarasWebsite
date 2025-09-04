@@ -4,7 +4,7 @@ import StartQuote from "../_components/startquote";
 export const metadata = {
   title: "Hayden Karas | Contact",
   description:
-    "The contact page for Hayden Karas, a software engineer from Cranston, Rhode Island.",
+    "Get in touch with Hayden Karas, an aspiring software engineer and leader in tech innovation. Contact for collaborations, tutoring, or game development insights. Find email and social links here.",
 };
 export default function Contact() {
   return (
