@@ -17,15 +17,18 @@ export default function EducationSection({ education }) {
         {categories.map((category, i) => (
           <button
             key={i}
-            className={
-              "hover:underline decoration-orange-500 " +
-              (currentCategory == category ? "underline" : "")
-            }
+            className={"group decoration-orange-500 "}
             onClick={() => {
               setCategory(category);
             }}
           >
             {category}
+            <span
+              class={
+                "block group-hover:max-w-full transition-all duration-500 h-0.5 bg-orange-500 " +
+                (currentCategory == category ? "max-w-full" : "max-w-0")
+              }
+            ></span>
           </button>
         ))}
       </div>

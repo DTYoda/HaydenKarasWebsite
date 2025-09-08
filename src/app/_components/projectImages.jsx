@@ -5,15 +5,15 @@ import Image from "next/image";
 export default function ProjectImages({ images }) {
   let [currentImage, changeCurrentImage] = useState(0);
   return (
-    <div className="w-[100vw] md:w-1/2 h-full text-4xl">
-      <div className="relative w-full h-full flex justify-center items-center">
+    <div className="w-[100vw] md:w-[80%] h-full text-4xl group">
+      <div className="relative w-full max-h-[80%] flex justify-center items-center">
         <Image
           width={500}
           height={500}
           src={images[Math.abs(currentImage) % images.length]}
           sizes="100vw"
           style={{ width: "100%", height: "auto" }}
-          className="border-orange-500 border-4 rounded-lg"
+          className="shadow-xl shadow-gray-600 group-hover:scale-[1.02] transition-all rounded-xl border-[1px] border-gray-600 max-w-7x max-h-[80%]"
         />
       </div>
       <div className="flex relative justify-between top-[-55%] px-8">

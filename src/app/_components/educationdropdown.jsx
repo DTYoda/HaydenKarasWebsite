@@ -17,7 +17,7 @@ export default function DropDown({
     <div className="transition-all rounded-md">
       <button
         className={
-          "max-w-5xl w-screen h-16 bg-gray-800 flex justify-between px-8 items-center " +
+          "max-w-5xl w-screen h-16 hover:border border-orange-500 bg-gray-800 flex justify-between px-8 items-center " +
           (isActive ? "rounded-t-lg" : "rounded-lg")
         }
         onClick={() => {
