@@ -1,6 +1,8 @@
 import Navigation from "./_components/navigation";
 import PortfolioResult from "./_components/portfolioresult";
 import Link from "next/link";
+import WhoAmI from "./_components/whoami";
+import Background from "./_components/background";
 
 export const metadata = {
   title: "Hayden Karas",
@@ -56,6 +58,12 @@ export default function Home() {
             <div className="h-1/3 w-4"></div>
           </div>
         </div>
+      </div>
+      <div className="flex flex-col items-center">
+        <a id=""></a>
+        <WhoAmI />
+        <a id=""></a>
+        <Background />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function Background() {
   const ImageStyle = {
-    filter: "grayscale(100%)",
+    filter: "grayscale(0%)",
   };
   return (
     <div className="min-h-screen h-full w-[100vw] md:w-[80vw] xl:w-[60vw]">
@@ -20,12 +20,12 @@ export default function Background() {
             My journey into the world of technology began with a fascination for
             how things work and a relentless curiosity to dig deeper. Starting
             with the idea of creating Minecraft mods in third grade, I started
-            with game development with scratch and then slowly learned new
+            with game development with Scratch and then slowly learned new
             technologies, languages, and frameworks. Entering high school, I
             began entering technology classes and doing various projects. This
             resulted in entering the SkillsUSA game development competition,
             winning states two years in a row and placing top 10 nationally
-            twice. {" "}
+            twice.{" "}
           </p>
           <br />
           <p className="lg:text-[1.2vw] md:text-[1.6vw] sm-text-[2vw] text-[4vw]">
@@ -39,7 +39,7 @@ export default function Background() {
           </p>
         </div>
         <div className="md:w-1/2 flex items-center justify-center w-full">
-          <div className="border-8 border-orange-500 rounded-lg">
+          <div className="border-4 border-orange-500 rounded-lg">
             <Image
               src="/SkillsUSAImage.jpeg"
               height={500}

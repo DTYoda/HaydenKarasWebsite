@@ -35,20 +35,20 @@ export default async function ProjectPage({ params }) {
               (image) => "/" + projectData.urlTitle + "/" + image
             )}
           />
-          <div>Project Overview</div>
           <ProjectDescription description={desc} />
         </div>
-        <div className=" w-[90vw] md:w-[70vw] xl:w-[70vw] grid md:grid-cols-2 grid-cols-1 gap-4">
+        <div className="h-16"></div>
+        <div className=" w-[90vw] md:w-[70vw] xl:w-[70vw] flex flex-col sm:flex-row sm:justify-center gap-16 bottom-0 bg-black">
           <div>
             <p>Technologies</p>
-            <div className="border-orange-800 border-4 gap-4 rounded-lg min-h-14 flex justify-center items-center h-20">
+            <div className="gap-4 rounded-lg flex justify-center items-center">
               {technologies.map((tech, id) => (
                 <Link
                   key={id}
                   title={tech.title}
                   href={tech.link}
                   target="_blank"
-                  className=" h-full w-24 flex justify-center items-center group"
+                  className=" h-16 w-full flex justify-center items-center group"
                 >
                   <Image
                     src={"/technologyimages/" + tech.title + ".png"}
@@ -65,7 +65,7 @@ export default async function ProjectPage({ params }) {
           <div>
             Links
             <div
-              className="border-orange-800 border-4 gap-4 rounded-lg min-h-14 flex justify-center items-center h-20
+              className=" gap-4 rounded-lg flex justify-center items-center h-16
               "
             >
               {links.map((link, id) => (
@@ -74,7 +74,7 @@ export default async function ProjectPage({ params }) {
                   title={link.title}
                   href={link.link}
                   target="_blank"
-                  className=" h-full w-24 flex justify-center items-center group animate-all"
+                  className=" h-full w-full flex justify-center items-center group animate-all"
                 >
                   <Image
                     src={"/linkimages/" + link.title + ".png"}
@@ -85,20 +85,6 @@ export default async function ProjectPage({ params }) {
                   />
                 </Link>
               ))}
-            </div>
-          </div>
-
-          <div>
-            Date
-            <div className="border-orange-800 border-4  rounded-lg min-h-14 flex justify-center items-center h-20">
-              <p className="text-[4vw] md:text-[2vw]">{projectData.date}</p>
-            </div>
-          </div>
-
-          <div>
-            Type
-            <div className="border-orange-800 border-4  rounded-lg min-h-14 h-20 flex justify-center items-center">
-              <p className="text-[4vw] md:text-[2vw]">{projectData.type}</p>
             </div>
           </div>
         </div>
