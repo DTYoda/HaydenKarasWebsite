@@ -13,37 +13,46 @@ export default function SkillsSection({ skills }) {
       </h1>
       <div className="flex justify-center shrink-0 gap-8 sm:text-3xl text-xl h-14 decoration-orange-500">
         <button
-          className={
-            "hover:underline decoration-orange-500 " +
-            (activeCategory == "languages" ? "underline" : "")
-          }
+          className={" group"}
           onClick={() => {
             setActiveCategory("languages");
           }}
         >
           Languages
+          <span
+            class={
+              "block group-hover:max-w-full transition-all duration-500 h-0.5 bg-orange-500 " +
+              (activeCategory == "languages" ? "max-w-full" : "max-w-0")
+            }
+          ></span>
         </button>
         <button
-          className={
-            "hover:underline decoration-orange-500 " +
-            (activeCategory == "frameworks" ? "underline" : "")
-          }
+          className={"group"}
           onClick={() => {
             setActiveCategory("frameworks");
           }}
         >
           Frameworks
+          <span
+            class={
+              "block group-hover:max-w-full transition-all duration-500 h-0.5 bg-orange-500 " +
+              (activeCategory == "frameworks" ? "max-w-full" : "max-w-0")
+            }
+          ></span>
         </button>
         <button
-          className={
-            "hover:underline decoration-orange-500 " +
-            (activeCategory == "skills" ? "underline" : "")
-          }
+          className={" group"}
           onClick={() => {
             setActiveCategory("skills");
           }}
         >
           Skills
+          <span
+            class={
+              "block group-hover:max-w-full transition-all duration-500 h-0.5 bg-orange-500 " +
+              (activeCategory == "skills" ? "max-w-full" : "max-w-0")
+            }
+          ></span>
         </button>
       </div>
       <div className="w-[80vw]">

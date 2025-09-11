@@ -35,7 +35,7 @@ export default function Navigation() {
       >
         Experience
       </Link>
-      <Link
+      {/* <Link
         className={
           "hover:bg-orange-400 hover:text-black transition-all w-20 h-8 rounded-md flex items-center justify-center " +
           (active == "/about" ? "bg-orange-500" : "")
@@ -43,7 +43,7 @@ export default function Navigation() {
         href="/about"
       >
         About
-      </Link>
+      </Link> */}
       <Link
         className={
           "hover:bg-orange-400 hover:text-black transition-all w-20 h-8 rounded-md flex items-center justify-center " +
