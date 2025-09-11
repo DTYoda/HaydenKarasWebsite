@@ -6,7 +6,7 @@ export default function ProjectDescription({ description }) {
   let [category, setCategory] = useState(categories[0]);
 
   return (
-    <div className="w-[100vw] md:w-[75vw] xl:w-[50vw] h-fill rounded-lg flex flex-col">
+    <div className="w-[100vw] md:w-[75vw] xl:w-[50vw] h-fill rounded-lg flex flex-col p-0">
       <div className="flex gap-4 p-4">
         {categories.map((desc, i) => {
           return (
@@ -28,7 +28,7 @@ export default function ProjectDescription({ description }) {
           );
         })}
       </div>
-      <div className="p-4 text-[3vw] md:text-[1.5vw] h-[50vw] md:h-[30vw] xl:h-[25vw]">
+      <div className="p-0 text-[3vw] md:text-[1.5vw] h-[50vw] md:h-[30vw] xl:h-[25vw]">
         {description[category]}
       </div>
     </div>

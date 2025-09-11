@@ -38,17 +38,17 @@ export default async function ProjectPage({ params }) {
           <ProjectDescription description={desc} />
         </div>
         <div className="h-16"></div>
-        <div className=" w-[90vw] md:w-[70vw] xl:w-[70vw] flex flex-col sm:flex-row sm:justify-center gap-16 bottom-0 bg-black">
+        <div className=" w-[90vw] md:w-[70vw] xl:w-[70vw] flex flex-col sm:flex-row items-start sm:justify-center sm:gap-16 bottom-0 bg-black">
           <div>
             <p>Technologies</p>
-            <div className="gap-4 rounded-lg flex justify-center items-center">
+            <div className="gap-4 rounded-lg flex justify-center items-start sm:items-center">
               {technologies.map((tech, id) => (
                 <Link
                   key={id}
                   title={tech.title}
                   href={tech.link}
                   target="_blank"
-                  className=" h-16 w-full flex justify-center items-center group"
+                  className=" h-10 sm:h-16 w-fill flex justify-center items-center group"
                 >
                   <Image
                     src={"/technologyimages/" + tech.title + ".png"}
@@ -65,7 +65,7 @@ export default async function ProjectPage({ params }) {
           <div>
             Links
             <div
-              className=" gap-4 rounded-lg flex justify-center items-center h-16
+              className=" gap-4 rounded-lg flex items-start sm:items-center justify-center
               "
             >
               {links.map((link, id) => (
@@ -74,7 +74,8 @@ export default async function ProjectPage({ params }) {
                   title={link.title}
                   href={link.link}
                   target="_blank"
-                  className=" h-full w-full flex justify-center items-center group animate-all"
+                  className=" h-10 sm:h-16 w-fill
+                   flex justify-center items-center group animate-all"
                 >
                   <Image
                     src={"/linkimages/" + link.title + ".png"}
