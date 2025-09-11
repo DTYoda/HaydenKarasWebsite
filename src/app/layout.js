@@ -5,7 +5,7 @@ export const metadata = {
   description:
     "The homepage for Hayden Karas, a software engineer from Cranston, Rhode Island.",
   icons: {
-    icon: "/icon.jpg", // /public path
+    icon: "/icon.png", // /public path
   },
   themeColor: "black",
   other: {
