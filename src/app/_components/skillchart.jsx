@@ -31,26 +31,28 @@ export default function SkillsChart({ activeCategory, skills }) {
   }, [activeCategory]);
 
   return (
-    <div className="w-full flex justify-normal flex-col p-0 m-0 h-full">
-      <div className="flex sm:flex-row flex-col flex-nowrap justify-between">
-        <div className="shrink-0 sm:w-[40vw] w-[80vw] sm:h-[40vw] h-[80vw] flex mx-auto overflow-hidden mt-8">
-          <CircleChart
-            skills={skills
-              .filter((element) => element.category == activeCategory)
-              .map((element) => element.name)}
-            handleClick={handleSectorClick}
-            sectorValue={sectorValue}
-            currentCategory={activeCategory}
-          />
-        </div>
-        <div className="w-full sm:w-1/2 shrink grow">
-          <h3 className="p-4 sm:text-[3.5vw] text-[6vw] font-bold">
-            {activeSector}
-          </h3>
-          <p className="sm:text-[2vw] text-[4vw] w-full p-4 leading-loose">
-            {skills.find((element) => element.name == activeSector).description}
-          </p>
-        </div>
+    <div className="w-full flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-start">
+      {/* Circle Chart */}
+      <div className="w-full max-w-[500px] sm:max-w-[600px] aspect-square flex-shrink-0 fade-in mx-auto">
+        <CircleChart
+          skills={skills
+            .filter((element) => element.category == activeCategory)
+            .map((element) => element.name)}
+          handleClick={handleSectorClick}
+          sectorValue={sectorValue}
+          currentCategory={activeCategory}
+        />
+      </div>
+      
+      {/* Description Panel */}
+      <div className="w-full lg:w-1/2 flex flex-col glass rounded-2xl p-6 sm:p-8 hover-lift min-h-[300px]">
+        <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 gradient-text">
+          {activeSector}
+        </h3>
+        <div className="w-16 h-1 bg-orange-500 mb-6"></div>
+        <p className="text-base sm:text-lg md:text-xl leading-relaxed text-gray-300">
+          {skills.find((element) => element.name == activeSector)?.description || "No description available."}
+        </p>
       </div>
     </div>
   );

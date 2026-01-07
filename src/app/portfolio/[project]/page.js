@@ -23,66 +23,79 @@ export default async function ProjectPage({ params }) {
   let technologies = JSON.parse(projectData.technologies);
 
   return (
-    <div>
+    <div className="animated-gradient min-h-screen">
       <Navigation />
-      <div className="w-[100vw] flex flex-col items-center">
-        <div className="text-center">
-          <h1 className="text-5xl space-y-5">{projectData.title}</h1>
+      <div className="w-full flex flex-col items-center pt-24 pb-20 px-6">
+        {/* Project Header */}
+        <div className="text-center mb-12 fade-in max-w-4xl">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
+            <span className="gradient-text">{projectData.title}</span>
+          </h1>
+          <div className="w-24 h-1 bg-orange-500 mx-auto mt-6"></div>
         </div>
-        <div className="flex w-full gap-4 m-4 flex-col items-center">
+
+        {/* Project Images */}
+        <div className="w-full max-w-6xl mb-12 fade-in">
           <ProjectImages
             images={images.map(
               (image) => "/" + projectData.urlTitle + "/" + image
             )}
           />
+        </div>
+
+        {/* Project Description */}
+        <div className="w-full max-w-6xl mb-16 fade-in">
           <ProjectDescription description={desc} />
         </div>
-        <div className="h-16"></div>
-        <div className=" w-[90vw] md:w-[70vw] xl:w-[70vw] flex flex-col sm:flex-row items-start sm:justify-center sm:gap-16 bottom-0 bg-black">
-          <div>
-            <p>Technologies</p>
-            <div className="gap-4 rounded-lg flex justify-center items-start sm:items-center">
+
+        {/* Technologies and Links */}
+        <div className="w-full max-w-6xl flex flex-col sm:flex-row gap-12 sm:gap-16 items-start sm:items-center sm:justify-center">
+          {/* Technologies Section */}
+          <div className="glass rounded-2xl p-8 hover-lift w-full sm:w-auto">
+            <h2 className="text-2xl font-bold mb-6 text-orange-500">Technologies</h2>
+            <div className="flex flex-wrap gap-6 justify-center items-center">
               {technologies.map((tech, id) => (
                 <Link
                   key={id}
                   title={tech.title}
                   href={tech.link}
                   target="_blank"
-                  className=" h-10 sm:h-16 w-fill flex justify-center items-center group"
+                  rel="noopener noreferrer"
+                  className="h-16 w-16 flex justify-center items-center group transition-all duration-300 hover-lift"
                 >
                   <Image
                     src={"/technologyimages/" + tech.title + ".png"}
-                    width={100}
-                    height={100}
-                    style={{ width: "auto", height: "90%" }}
-                    className="group-hover:scale-[1.1]"
+                    width={64}
+                    height={64}
+                    alt={tech.title}
+                    className="transition-transform duration-300 group-hover:scale-110 filter group-hover:brightness-110"
+                    style={{ width: "auto", height: "100%" }}
                   />
                 </Link>
               ))}
             </div>
           </div>
 
-          <div>
-            Links
-            <div
-              className=" gap-4 rounded-lg flex items-start sm:items-center justify-center
-              "
-            >
+          {/* Links Section */}
+          <div className="glass rounded-2xl p-8 hover-lift w-full sm:w-auto">
+            <h2 className="text-2xl font-bold mb-6 text-orange-500">Links</h2>
+            <div className="flex flex-wrap gap-6 justify-center items-center">
               {links.map((link, id) => (
                 <Link
                   key={id}
                   title={link.title}
                   href={link.link}
                   target="_blank"
-                  className=" h-10 sm:h-16 w-fill
-                   flex justify-center items-center group animate-all"
+                  rel="noopener noreferrer"
+                  className="h-16 w-16 flex justify-center items-center group transition-all duration-300 hover-lift"
                 >
                   <Image
                     src={"/linkimages/" + link.title + ".png"}
-                    width={100}
-                    height={100}
-                    style={{ width: "auto", height: "90%" }}
-                    className="group-hover:scale-[1.1]"
+                    width={64}
+                    height={64}
+                    alt={link.title}
+                    className="transition-transform duration-300 group-hover:scale-110 filter group-hover:brightness-110"
+                    style={{ width: "auto", height: "100%" }}
                   />
                 </Link>
               ))}

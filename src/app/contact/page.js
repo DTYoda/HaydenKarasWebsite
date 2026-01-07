@@ -8,16 +8,16 @@ export const metadata = {
 };
 export default function Contact() {
   return (
-    <div>
-      <div className="flex flex-col h-screen w-screen">
+    <div className="animated-gradient">
+      <div className="flex flex-col min-h-screen w-screen relative overflow-hidden">
         <Navigation />
-        <div className="w-screen flex justify-center grow">
+        <div className="w-screen flex justify-center grow pt-16">
           <StartQuote
             quote="Communication—the human connection—is the key to personal and career success."
             author="Paul J. Meyer"
             links={[
               ["https://www.linkedin.com/in/haydenkaras/", "LinkedIn"],
-              ["https://mailto:hkaras1121@gmail.com", "hkaras1121@gmail.com"],
+              ["mailto:hkaras1121@gmail.com", "hkaras1121@gmail.com"],
             ]}
           />
         </div>

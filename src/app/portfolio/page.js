@@ -10,10 +10,10 @@ export const metadata = {
 
 export default function Portfolio() {
   return (
-    <div>
-      <div className="flex flex-col h-screen w-screen">
+    <div className="animated-gradient">
+      <div className="flex flex-col min-h-screen w-screen relative overflow-hidden">
         <Navigation />
-        <div className="w-screen flex justify-center grow">
+        <div className="w-screen flex justify-center grow pt-16">
           <StartQuote
             quote="The only place success comes before work is in the dictionary."
             author="Vince Lombardi"
@@ -25,7 +25,7 @@ export default function Portfolio() {
           />
         </div>
       </div>
-      <div>
+      <div className="bg-gradient-to-b from-transparent to-[#0a0a0a]">
         <PortfolioSection />
       </div>
     </div>

@@ -15,8 +15,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="scroll-smooth snap-y snap-proximity">
-      <body className="min-h-screen h-fit w-[100vw] m-0 p-0">{children}</body>
+    <html lang="en" className="scroll-smooth">
+      <body className="min-h-screen h-fit w-full m-0 p-0 overflow-x-hidden">
+        {children}
+      </body>
     </html>
   );
 }

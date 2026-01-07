@@ -14,34 +14,52 @@ export default function DropDown({
   let isActive = currentActive == title;
 
   return (
-    <div className="transition-all rounded-md">
+    <div className="transition-all rounded-lg overflow-hidden glass hover-lift">
       <button
         className={
-          "max-w-5xl w-screen h-16 hover:border border-orange-500 bg-gray-800 flex justify-between px-8 items-center " +
-          (isActive ? "rounded-t-lg" : "rounded-lg")
+          "w-full h-16 hover:bg-orange-500/10 border border-orange-500/20 hover:border-orange-500/50 flex justify-between px-6 items-center transition-all duration-300 " +
+          (isActive
+            ? "bg-orange-500/10 border-orange-500/50"
+            : "bg-transparent")
         }
         onClick={() => {
           isActive ? onClick("") : onClick(title);
         }}
       >
-        <p className="text-left">{title}</p>
-        <p>{isActive ? "^" : "˅"}</p>
+        <p className="text-left font-semibold text-lg text-gray-200">{title}</p>
+        <p
+          className={`text-orange-500 text-xl transition-transform duration-300 ${
+            isActive ? "rotate-180" : ""
+          }`}
+        >
+          ˅
+        </p>
       </button>
       <div
         className={
-          "rounded-b-lg transition-all max-w-5xl w-screen bg-gray-900 overflow-scroll " +
-          (isActive ? "h-56 p-8" : "h-0")
+          "transition-all duration-300 overflow-hidden " +
+          (isActive ? "max-h-96 p-6" : "max-h-0 p-0")
         }
       >
-        <p className={"" + (isActive ? "" : " hidden")}>{desc}</p>
-        <Link
-          href={to}
-          className={"text-white underline " + (isActive ? "" : "hidden")}
-          rel="noopener noreferrer"
-          target="_blank"
+        <p
+          className={`text-gray-300 leading-relaxed mb-4 ${
+            isActive ? "block" : "hidden"
+          }`}
         >
-          {linkName}
-        </Link>
+          {desc}
+        </p>
+        {linkName && (
+          <Link
+            href={to}
+            className={`text-orange-500 hover:text-orange-400 font-semibold underline transition-colors duration-300 ${
+              isActive ? "block" : "hidden"
+            }`}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {linkName} →
+          </Link>
+        )}
       </div>
     </div>
   );
