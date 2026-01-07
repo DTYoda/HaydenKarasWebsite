@@ -1,57 +1,107 @@
-import { PrismaClient } from '@prisma/client';
+import { createServerClient } from '@/lib/supabase';
 import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
-
 export async function POST(req) {
-  try{
+  try {
     var body = await req.json();
-  }
-  catch(error){
+  } catch (error) {
     console.log(error);
     return NextResponse.json({ success: false, message: "Error processing request" }, { status: 500 });
   }
-    try {
-      // Insert the user into the database
-      if(body.type == "new")
-      {
-          const newSkill = await prisma.skills.create({
-            data: {
-              category: body.category,
-              name: body.name,
-              description: body.description
-            }
-          });
+
+  try {
+    const supabase = createServerClient();
+
+    if (body.type == "new") {
+      // Validate required fields
+      if (!body.category || !body.name || !body.description) {
+        return NextResponse.json({ 
+          success: false, 
+          message: "Missing required fields: category, name, and description are required" 
+        }, { status: 400 });
       }
-      else if(body.type == "edit")
-      {
-        const editSkill = await prisma.skills.updateMany(
-          {
-            where: {
-              name: body.oldName
-            },
-            data: {
-              category: body.category,
-              name: body.name,
-              description: body.description
-            }
-          }
-        );
+
+      const { data, error } = await supabase
+        .from('skills')
+        .insert({
+          category: body.category,
+          name: body.name,
+          description: body.description,
+          proficiency: parseInt(body.proficiency) || 80
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Supabase error:", error);
+        return NextResponse.json({ 
+          success: false, 
+          message: error.message || "Error creating skill",
+          error: error 
+        }, { status: 500 });
       }
-      else if(body.type == "delete")
-      {
-         const deleteSkill = await prisma.skills.deleteMany({
-           where: {
-             name: body.name
-           }
-         });
+      return NextResponse.json({ success: true, message: "Data received!", data }, { status: 200 });
+    } else if (body.type == "edit") {
+      const { data, error } = await supabase
+        .from('skills')
+        .update({
+          category: body.category,
+          name: body.name,
+          description: body.description,
+          proficiency: parseInt(body.proficiency) || 80
+        })
+        .eq('name', body.oldName)
+        .select();
+
+      if (error) {
+        console.error("Supabase error:", error);
+        return NextResponse.json({ 
+          success: false, 
+          message: error.message || "Error updating skill",
+          error: error 
+        }, { status: 500 });
       }
-      
-      return NextResponse.json({ success: true, message: "Data received!", data: body }, {status: 200}); // Respond with the created user
-    } catch (error) {
-      console.log(error);
-      return NextResponse.json({ success: false, message: "Error processing request" }, { status: 500 });
-    } finally {
-      await prisma.$disconnect();
+      return NextResponse.json({ success: true, message: "Data received!", data: body }, { status: 200 });
+    } else if (body.type == "delete") {
+      const { error } = await supabase
+        .from('skills')
+        .delete()
+        .eq('name', body.name);
+
+      if (error) {
+        console.error("Supabase error:", error);
+        return NextResponse.json({ 
+          success: false, 
+          message: error.message || "Error deleting skill",
+          error: error 
+        }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, message: "Data received!", data: body }, { status: 200 });
     }
+
+    return NextResponse.json({ success: false, message: "Invalid type" }, { status: 400 });
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return NextResponse.json({ 
+      success: false, 
+      message: error.message || "Error processing request",
+      error: error.toString()
+    }, { status: 500 });
+  }
+}
+
+export async function GET(req) {
+  try {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+      .from('skills')
+      .select('*')
+      .order('name');
+
+    if (error) throw error;
+    return NextResponse.json({ success: true, data }, { status: 200 });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json({ success: false, message: "Error fetching skills" }, { status: 500 });
+  }
 }

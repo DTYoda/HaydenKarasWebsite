@@ -1,10 +1,25 @@
 import PortfolioResult from "./portfolioresult";
 import SearchBar from "./searchbar";
-import { PrismaClient } from "@prisma/client";
+import { createServerClient } from "@/lib/supabase";
 
 export default async function PortfolioSection() {
-  const prisma = new PrismaClient();
-  const projects = await prisma.projects.findMany();
+  let projects = [];
+  
+  try {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching projects:", error);
+    } else if (data) {
+      projects = data;
+    }
+  } catch (error) {
+    console.error("Error initializing Supabase:", error);
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center py-20 px-6">
@@ -18,14 +33,14 @@ export default async function PortfolioSection() {
         <div className="w-24 h-1 bg-orange-500 mx-auto mt-6"></div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 w-full max-w-7xl place-items-center">
-        {projects.map((project, id) => (
-          <div key={id} className="fade-in" style={{ animationDelay: `${id * 0.1}s` }}>
+        {(projects || []).map((project, id) => (
+          <div key={project.id || id} className="fade-in" style={{ animationDelay: `${id * 0.1}s` }}>
             <PortfolioResult
-              link={project.urlTitle}
+              link={project.url_title}
               title={project.title}
               type={project.type}
               date={project.date}
-              image={JSON.parse(project.images)[0]}
+              image={JSON.parse(project.images || '[]')[0]}
             />
           </div>
         ))}

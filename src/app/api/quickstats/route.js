@@ -14,42 +14,41 @@ export async function POST(req) {
 
     if (body.type == "new") {
       const { data, error } = await supabase
-        .from('education')
+        .from('quick_stats')
         .insert({
-          link: body.link || '',
-          link_text: body.linkText || '',
-          category: body.category,
-          name: body.name,
-          description: body.description
+          value: body.value,
+          label: body.label,
+          sublabel: body.sublabel,
+          order: body.order || 0
         })
         .select()
         .single();
 
       if (error) throw error;
-      return NextResponse.json({ success: true, message: "Data received!", data }, { status: 200 });
+      return NextResponse.json({ success: true, message: "Stat created!", data }, { status: 200 });
     } else if (body.type == "edit") {
       const { data, error } = await supabase
-        .from('education')
+        .from('quick_stats')
         .update({
-          category: body.category,
-          name: body.name,
-          description: body.description,
-          link: body.link || '',
-          link_text: body.linkText || ''
+          value: body.value,
+          label: body.label,
+          sublabel: body.sublabel,
+          order: body.order || 0
         })
-        .eq('name', body.oldName)
-        .select();
+        .eq('id', body.id)
+        .select()
+        .single();
 
       if (error) throw error;
-      return NextResponse.json({ success: true, message: "Data received!", data: body }, { status: 200 });
+      return NextResponse.json({ success: true, message: "Stat updated!", data }, { status: 200 });
     } else if (body.type == "delete") {
       const { error } = await supabase
-        .from('education')
+        .from('quick_stats')
         .delete()
-        .eq('name', body.name);
+        .eq('id', body.id);
 
       if (error) throw error;
-      return NextResponse.json({ success: true, message: "Data received!", data: body }, { status: 200 });
+      return NextResponse.json({ success: true, message: "Stat deleted!" }, { status: 200 });
     }
 
     return NextResponse.json({ success: false, message: "Invalid type" }, { status: 400 });
@@ -63,14 +62,14 @@ export async function GET(req) {
   try {
     const supabase = createServerClient();
     const { data, error } = await supabase
-      .from('education')
+      .from('quick_stats')
       .select('*')
-      .order('name');
+      .order('order', { ascending: true });
 
     if (error) throw error;
     return NextResponse.json({ success: true, data }, { status: 200 });
   } catch (error) {
     console.log(error);
-    return NextResponse.json({ success: false, message: "Error fetching education" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Error fetching stats" }, { status: 500 });
   }
 }

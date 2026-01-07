@@ -1,34 +1,39 @@
 import Navigation from "../_components/navigation";
-import StartQuote from "../_components/startquote";
-import WhoAmI from "../_components/whoami";
-import Background from "../_components/background";
+import EditableStartQuote from "../_components/editablestartquote";
+import EditableWhoAmI from "../_components/editablewhoami";
+import EditableBackground from "../_components/editablebackground";
 
 export const metadata = {
   title: "Hayden Karas | About",
   description:
     "Meet Hayden Karas: a dedicated learner and leader in computer science and mathematics, with a passion for bridging the digital divide. Discover his journey from coding beginnings to impactful projects and leadership roles.",
 };
+
 export default function About() {
   return (
-    <div>
-      <div className="flex flex-col h-screen w-screen">
-        <Navigation />
-        <div className="w-screen flex justify-center grow">
-          <StartQuote
-            quote="Quality is not an act, it is a habit."
-            author="Aristotle"
-            links={[
-              ["#1", "Who Am I?"],
-              ["#2", "My Journey"],
-            ]}
-          />
+    <div className="animated-gradient">
+      <div className="flex flex-col items-center min-h-screen">
+        <div className="flex flex-col min-h-screen w-screen relative overflow-hidden">
+          <Navigation />
+          <div className="w-screen flex justify-center grow pt-16">
+            <EditableStartQuote
+              quote="Quality is not an act, it is a habit."
+              author="Aristotle"
+              links={[
+                ["#whoami", "Who Am I?"],
+                ["#journey", "My Journey"],
+              ]}
+              page="about"
+              section="quote"
+            />
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col items-center">
-        <a id="1"></a>
-        <WhoAmI />
-        <a id="2"></a>
-        <Background />
+        <div className="bg-gradient-to-b from-transparent to-[#0a0a0a] w-full">
+          <a id="whoami"></a>
+          <EditableWhoAmI />
+          <a id="journey"></a>
+          <EditableBackground />
+        </div>
       </div>
     </div>
   );

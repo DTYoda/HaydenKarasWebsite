@@ -1,5 +1,5 @@
 import Navigation from "../_components/navigation";
-import StartQuote from "../_components/startquote";
+import EditableStartQuote from "../_components/editablestartquote";
 
 export const metadata = {
   title: "Hayden Karas | Contact",
@@ -12,13 +12,15 @@ export default function Contact() {
       <div className="flex flex-col min-h-screen w-screen relative overflow-hidden">
         <Navigation />
         <div className="w-screen flex justify-center grow pt-16">
-          <StartQuote
+          <EditableStartQuote
             quote="Communication—the human connection—is the key to personal and career success."
             author="Paul J. Meyer"
             links={[
               ["https://www.linkedin.com/in/haydenkaras/", "LinkedIn"],
               ["mailto:hkaras1121@gmail.com", "hkaras1121@gmail.com"],
             ]}
+            page="contact"
+            section="quote"
           />
         </div>
       </div>

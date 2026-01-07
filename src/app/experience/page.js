@@ -1,38 +1,36 @@
 import Navigation from "../_components/navigation";
-import SkillsSection from "../_components/skillsection";
-import EducationSection from "../_components/educationsection";
-import StartQuote from "../_components/startquote";
-import { PrismaClient } from "@prisma/client";
+import EditableStartQuote from "../_components/editablestartquote";
+import ExperienceContent from "../_components/experiencecontent";
 
 export const metadata = {
   title: "Hayden Karas | Experience",
-  description: "The experience page for Hayden Karas, a software engineer from Cranston, Rhode Island.",
+  description:
+    "Technical skills, education, and qualifications. A visual overview for recruiters.",
 };
 
-export default async function Experience() {
-  const prisma = new PrismaClient();
-
-  const skills = await prisma.Skills.findMany();
-  const education = await prisma.Education.findMany();
-
+export default function Experience() {
   return (
     <div className="animated-gradient">
       <div className="flex flex-col items-center min-h-screen">
         <div className="flex flex-col min-h-screen w-screen relative overflow-hidden">
           <Navigation />
           <div className="w-screen flex justify-center grow pt-16">
-            <StartQuote
+            <EditableStartQuote
               quote="Real knowledge is to know the extent of one's ignorance."
               author="Confucius"
-              links={[["#1", "Abilities"], ["#2", "Education"], ["https://leetcode.com/u/DTYoda/", "LeetCode"]]}
+              links={[
+                ["#skills", "Skills"],
+                ["#education", "Education"],
+                ["https://leetcode.com/u/DTYoda/", "LeetCode"],
+              ]}
+              page="experience"
+              section="quote"
             />
           </div>
         </div>
+
         <div className="bg-gradient-to-b from-transparent to-[#0a0a0a] w-full">
-          <a id="1"></a>
-          <SkillsSection skills={skills} />
-          <a id="2"></a>
-          <EducationSection education={education} />
+          <ExperienceContent />
         </div>
       </div>
     </div>

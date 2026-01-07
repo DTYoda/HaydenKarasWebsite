@@ -1,7 +1,7 @@
 import Link from "next/link";
 export default function StartQuote({ quote, author, links }) {
   return (
-    <div className="max-w-6xl w-full px-6 grow flex flex-col justify-center relative">
+    <div className="max-w-6xl w-full px-6 grow flex flex-col justify-start pt-32 relative">
       {/* Background decorative elements */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl"></div>

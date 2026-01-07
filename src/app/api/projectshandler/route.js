@@ -14,42 +14,49 @@ export async function POST(req) {
 
     if (body.type == "new") {
       const { data, error } = await supabase
-        .from('education')
+        .from('projects')
         .insert({
-          link: body.link || '',
-          link_text: body.linkText || '',
-          category: body.category,
-          name: body.name,
-          description: body.description
+          url_title: body.urlTitle,
+          title: body.title,
+          descriptions: body.descriptions,
+          images: body.images,
+          links: body.links,
+          technologies: body.technologies || "[]",
+          type: body.projectType || "website",
+          date: body.date || "undefined"
         })
         .select()
         .single();
 
       if (error) throw error;
-      return NextResponse.json({ success: true, message: "Data received!", data }, { status: 200 });
+      return NextResponse.json({ success: true, message: "Project created!", data }, { status: 200 });
     } else if (body.type == "edit") {
       const { data, error } = await supabase
-        .from('education')
+        .from('projects')
         .update({
-          category: body.category,
-          name: body.name,
-          description: body.description,
-          link: body.link || '',
-          link_text: body.linkText || ''
+          url_title: body.urlTitle,
+          title: body.title,
+          descriptions: body.descriptions,
+          images: body.images,
+          links: body.links,
+          technologies: body.technologies || "[]",
+          type: body.projectType || "website",
+          date: body.date || "undefined"
         })
-        .eq('name', body.oldName)
-        .select();
+        .eq('id', body.id)
+        .select()
+        .single();
 
       if (error) throw error;
-      return NextResponse.json({ success: true, message: "Data received!", data: body }, { status: 200 });
+      return NextResponse.json({ success: true, message: "Project updated!", data }, { status: 200 });
     } else if (body.type == "delete") {
       const { error } = await supabase
-        .from('education')
+        .from('projects')
         .delete()
-        .eq('name', body.name);
+        .eq('id', body.id);
 
       if (error) throw error;
-      return NextResponse.json({ success: true, message: "Data received!", data: body }, { status: 200 });
+      return NextResponse.json({ success: true, message: "Project deleted!" }, { status: 200 });
     }
 
     return NextResponse.json({ success: false, message: "Invalid type" }, { status: 400 });
@@ -63,14 +70,14 @@ export async function GET(req) {
   try {
     const supabase = createServerClient();
     const { data, error } = await supabase
-      .from('education')
+      .from('projects')
       .select('*')
-      .order('name');
+      .order('date', { ascending: false });
 
     if (error) throw error;
     return NextResponse.json({ success: true, data }, { status: 200 });
   } catch (error) {
     console.log(error);
-    return NextResponse.json({ success: false, message: "Error fetching education" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Error fetching projects" }, { status: 500 });
   }
 }

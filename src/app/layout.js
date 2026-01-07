@@ -1,4 +1,5 @@
 import "./globals.css";
+import AuthWrapper from "./_components/authwrapper";
 
 export const metadata = {
   title: "Hayden Karas",
@@ -13,11 +14,16 @@ export const metadata = {
   },
 };
 
+import AdminButton from "./_components/adminbutton";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen h-fit w-full m-0 p-0 overflow-x-hidden">
-        {children}
+        <AuthWrapper>
+          {children}
+          <AdminButton />
+        </AuthWrapper>
       </body>
     </html>
   );

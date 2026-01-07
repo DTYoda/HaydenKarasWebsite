@@ -1,16 +1,30 @@
 import Navigation from "@/app/_components/navigation";
 import ProjectImages from "@/app/_components/projectImages";
 import ProjectDescription from "@/app/_components/projectdesc";
-import { PrismaClient } from "@prisma/client";
+import { createServerClient } from "@/lib/supabase";
 import Link from "next/link";
 import Image from "next/image";
 
 export default async function ProjectPage({ params }) {
   const { project } = params; // `params` contains the dynamic URL segments
-  const prisma = new PrismaClient();
-  const projectData = await prisma.Projects.findFirst({
-    where: { urlTitle: project },
-  });
+  let projectData = null;
+  
+  try {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('url_title', project)
+      .single();
+
+    if (error) {
+      console.error("Error fetching project:", error);
+    } else {
+      projectData = data;
+    }
+  } catch (error) {
+    console.error("Error initializing Supabase:", error);
+  }
 
   if (!projectData) {
     return <div>Project not found</div>;
@@ -38,7 +52,7 @@ export default async function ProjectPage({ params }) {
         <div className="w-full max-w-6xl mb-12 fade-in">
           <ProjectImages
             images={images.map(
-              (image) => "/" + projectData.urlTitle + "/" + image
+              (image) => "/" + projectData.url_title + "/" + image
             )}
           />
         </div>

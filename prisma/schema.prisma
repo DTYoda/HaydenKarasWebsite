@@ -13,6 +13,7 @@ model Skills {
   category    String
   name        String
   description String
+  proficiency Int    @default(80)
 }
 
 model Education {
@@ -34,4 +35,37 @@ model Projects {
   technologies String @default("[]")
   type         String @default("website")
   date         String @default("undefined")
+}
+
+model StaticContent {
+  id          String @id @default(cuid())
+  key         String @unique
+  title       String?
+  content     String
+  section     String
+}
+
+model TopSkills {
+  id          String @id @default(cuid())
+  name        String
+  proficiency Int
+  category    String
+  order       Int    @default(0)
+}
+
+model QuickStats {
+  id       String @id @default(cuid())
+  value    String
+  label    String
+  sublabel String
+  order    Int    @default(0)
+}
+
+model PageContent {
+  id      String @id @default(cuid())
+  key     String @unique
+  page    String
+  section String
+  content String
+  type    String @default("text")
 }

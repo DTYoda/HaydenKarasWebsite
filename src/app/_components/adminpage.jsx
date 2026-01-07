@@ -1,115 +1,583 @@
-"use client"
+"use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import EditModal from "./editmodal";
+import EditButton from "./editbutton";
+import DeleteButton from "./deletebutton";
+import AddButton from "./addbutton";
+import Navigation from "./navigation";
+import QuickStats from "./quickstats";
+import LatestProjects from "./latestprojects";
+import TopSkills from "./topskills";
+import AboutPreview from "./aboutpreview";
+import ContactPreview from "./contactpreview";
+import ExperienceContent from "./experiencecontent";
+import WhoAmI from "./whoami";
+import Background from "./background";
+import PortfolioSectionClient from "./portfoliosectionclient";
 
 export default function AdminPage() {
-    
-    const [skills, setSkills] = useState({category: "languages", name: "", description: "", type: "new", oldName: ""});
-    const [education, setEducation] = useState({oldName: "", type: "new", category: "coursework", name: "", description: "", link: "", linkText: ""});
-    const router = useRouter();
+  const router = useRouter();
+  const [projects, setProjects] = useState([]);
+  const [skills, setSkills] = useState([]);
+  const [education, setEducation] = useState([]);
+  const [topSkills, setTopSkills] = useState([]);
+  const [quickStats, setQuickStats] = useState([]);
+  const [staticContent, setStaticContent] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editModal, setEditModal] = useState({ isOpen: false, type: null, data: null, fields: [] });
 
-    async function SubmitSkillsToDatabase(e)
-    {
-        e.preventDefault();
+  useEffect(() => {
+    fetchAllData();
+  }, []);
 
-        const response = await fetch("/api/skillshandler", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(skills),
-          });
-        if(response.status == 200)
-        {
-            
-        }
+  const fetchAllData = async () => {
+    try {
+      const [projectsRes, skillsRes, educationRes, topSkillsRes, quickStatsRes, staticContentRes] = await Promise.all([
+        fetch("/api/projectshandler").catch(() => ({ ok: false })),
+        fetch("/api/skillshandler").catch(() => ({ ok: false })),
+        fetch("/api/educationhandler").catch(() => ({ ok: false })),
+        fetch("/api/topskills").catch(() => ({ ok: false })),
+        fetch("/api/quickstats").catch(() => ({ ok: false })),
+        fetch("/api/staticcontent").catch(() => ({ ok: false })),
+      ]);
+
+      if (projectsRes.ok) {
+        const data = await projectsRes.json();
+        setProjects(data.data || []);
+      }
+      if (skillsRes.ok) {
+        const data = await skillsRes.json();
+        setSkills(data.data || []);
+      }
+      if (educationRes.ok) {
+        const data = await educationRes.json();
+        setEducation(data.data || []);
+      }
+      if (topSkillsRes.ok) {
+        const data = await topSkillsRes.json();
+        setTopSkills(data.data || []);
+      }
+      if (quickStatsRes.ok) {
+        const data = await quickStatsRes.json();
+        setQuickStats(data.data || []);
+      }
+      if (staticContentRes.ok) {
+        const data = await staticContentRes.json();
+        setStaticContent(data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    async function SubmitEducationToDatabase(e)
-    {
-        e.preventDefault();
-        const response = await fetch("/api/educationhandler", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(education),
-          });
+  const handleSave = async (data) => {
+    try {
+      let endpoint = "";
+      let payload = { ...data };
 
-        if(response.status == 200)
-        {
-            router.refresh();
-        }
+      switch (editModal.type) {
+        case "project":
+          endpoint = "/api/projectshandler";
+          payload.type = editModal.data ? "edit" : "new";
+          if (payload.type === "edit") payload.id = editModal.data.id;
+          break;
+        case "skill":
+          endpoint = "/api/skillshandler";
+          payload.type = editModal.data ? "edit" : "new";
+          if (payload.type === "edit") {
+            payload.oldName = editModal.data.name;
+            payload.id = editModal.data.id;
+          }
+          break;
+        case "education":
+          endpoint = "/api/educationhandler";
+          payload.type = editModal.data ? "edit" : "new";
+          if (payload.type === "edit") {
+            payload.oldName = editModal.data.name;
+            payload.id = editModal.data.id;
+          }
+          break;
+        case "topskill":
+          endpoint = "/api/topskills";
+          payload.type = editModal.data ? "edit" : "new";
+          if (payload.type === "edit") payload.id = editModal.data.id;
+          break;
+        case "quickstat":
+          endpoint = "/api/quickstats";
+          payload.type = editModal.data ? "edit" : "new";
+          if (payload.type === "edit") payload.id = editModal.data.id;
+          break;
+        case "static":
+          endpoint = "/api/staticcontent";
+          payload.type = editModal.data ? "edit" : "new";
+          break;
+        default:
+          return;
+      }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setEditModal({ isOpen: false, type: null, data: null, fields: [] });
+        await fetchAllData();
+        router.refresh();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.message || "Failed to save"}`);
+      }
+    } catch (error) {
+      console.error("Error saving:", error);
+      alert("Error saving data");
     }
+  };
 
-    async function SubmitProjectToDatabase(e)
-    {
+  const handleDelete = async (type, id, name) => {
+    if (!confirm("Are you sure you want to delete this item?")) return;
+
+    try {
+      let endpoint = "";
+      let payload = { type: "delete" };
+
+      switch (type) {
+        case "project":
+          endpoint = "/api/projectshandler";
+          payload.id = id;
+          break;
+        case "skill":
+          endpoint = "/api/skillshandler";
+          payload.name = name;
+          break;
+        case "education":
+          endpoint = "/api/educationhandler";
+          payload.name = name;
+          break;
+        case "topskill":
+          endpoint = "/api/topskills";
+          payload.id = id;
+          break;
+        case "quickstat":
+          endpoint = "/api/quickstats";
+          payload.id = id;
+          break;
+        case "static":
+          endpoint = "/api/staticcontent";
+          payload.key = id;
+          break;
+        default:
+          return;
+      }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        await fetchAllData();
+        router.refresh();
+      } else {
+        alert("Error deleting data");
+      }
+    } catch (error) {
+      console.error("Error deleting:", error);
+      alert("Error deleting data");
     }
+  };
 
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="text-2xl font-bold gradient-text">Loading...</div>
+      </div>
+    );
+  }
 
-
-    if(false)
-    {
-        return <div className="w-full min-h-screen flex flex-col items-center gap-8">
-            <div className="xl:w-[60vw] md:w-[80vw] w-[100vw] mt-8">
-                <h1 className="text-center lg:text-7xl mb-2">Admin Page</h1>
-                <p className="text-center">Welcome to the admin dashboard.</p>
-                <p className="text-center">Here you can manage your content and settings.</p>
-            </div>
-            <div className="w-[40vw] h-[20vw] rounded-xl bg-gray-600 p-4" onSubmit={SubmitSkillsToDatabase}>
-                <p className="bg-black text-white rounded-xl px-3 block w-fit text-center underline">Skills</p>
-                <form>
-                    <select className="m-1 w-1/4 bg-black text-white rounded-xl px-3" name="type" onChange={(e) => setSkills({ ...skills, type: e.target.value })}>
-                        <option value="new">New</option>
-                        <option value="edit">Edit</option>
-                        <option value="delete">Delete</option>
-                    </select>
-                    
-                    {skills.type != "delete" && <select className="w-1/4 bg-black text-white rounded-xl mb-4 px-3" name="category" onChange={(e) => setSkills({ ...skills, category: e.target.value })}>
-                        <option value="languages">Language</option>
-                        <option value="frameworks">Framework</option>
-                        <option value="skills">Skill</option>
-                    </select>}
-                    <br />
-                    {skills.type == "edit" && <input className="w-full bg-black text-white rounded-xl px-3 mb-1" type="text" placeholder="Old Name" onChange={(e) => setSkills({ ...skills, oldName: e.target.value })}></input>}
-                    <input className="w-full bg-black text-white rounded-xl px-3" type="text" placeholder="Name" onChange={(e) => setSkills({ ...skills, name: e.target.value })}></input>
-                    {skills.type != "delete" && <textarea className="bg-black text-white w-full mb-4 mt-1 rounded-xl px-3 h-[8vw]" type="text" placeholder="description" onChange={(e) => setSkills({ ...skills, description: e.target.value })}></textarea>}
-                    <br />
-                    <button className="bg-black text-white rounded-xl px-3 mt-1" type="submit">Submit</button>
-                </form>
-            </div>
-            <div className="p-4 w-[40vw] h-[20vw] rounded-xl bg-gray-600" onSubmit={SubmitEducationToDatabase}>
-                <form>
-                    <p className="underline bg-black text-white rounded-xl px-3 block w-fit text-center">Education</p>
-                    <select className="m-1 w-1/4 bg-black text-white rounded-xl px-3" name="type" onChange={(e) => setEducation({ ...education, type: e.target.value })}>
-                        <option value="new">New</option>
-                        <option value="edit">Edit</option>
-                        <option value="delete">Delete</option>
-                    </select>
-                    {education.type != "delete" && <select className="w-1/4 bg-black text-white rounded-xl mb-4 px-3" name="category" onChange={(e) => setEducation({ ...education, category: e.target.value })}>
-                        <option value="coursework">Coursework</option>
-                        <option value="certifications">Certification</option>
-                        <option value="courses">Course</option>
-                        <option value="awards">Award</option>
-                    </select>}
-                    <br></br>
-                    {education.type == "edit" && <input className="w-full bg-black text-white rounded-xl px-3 mb-1" type="text" placeholder="Old Name" onChange={(e) => setEducation({ ...education, oldName: e.target.value })}></input>}
-                    <input className="w-full bg-black text-white rounded-xl px-3" type="text" placeholder="Name" onChange={(e) => setEducation({ ...education, name: e.target.value })}></input>
-                    <br></br>
-                    {education.type != "delete" && <textarea className="bg-black text-white w-full mb-4 mt-1 rounded-xl px-3 h-[8vw]" type="text" placeholder="description" onChange={(e) => setEducation({ ...education, description: e.target.value })}></textarea>}
-                    <br />
-                    {education.type != "delete" && <input className="bg-black text-white rounded-xl px-3" type="text" placeholder="link" onChange={(e) => setEducation({ ...education, link: e.target.value })}></input>}
-                    {education.type != "delete" && <input className="bg-black text-white rounded-xl px-3" type="text" placeholder="linkText" onChange={(e) => setEducation({ ...education, linkText: e.target.value })}></input>}
-                    <br />
-                    <button className="bg-black text-white rounded-xl px-3 mt-1" type="submit">Submit</button>
-                </form>
-            </div>
-            <div className="w-[40vw] h-[10vw] rounded-xl bg-gray-600">
-
-            </div>
+  return (
+    <div className="animated-gradient min-h-screen">
+      <Navigation />
+      <div className="w-full max-w-7xl mx-auto px-6 py-20">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-4 uppercase tracking-wider">
+            <span className="gradient-text">Admin Dashboard</span>
+          </h1>
+          <p className="text-xl text-gray-400">Edit all content on your website</p>
+          <div className="w-24 h-1 bg-orange-500 mx-auto mt-6"></div>
         </div>
-    }
-    return <div className="w-full min-h-screen flex flex-col items-center">
-    <div className="xl:w-[60vw] md:w-[80vw] w-[100vw]">
-        <h1 className="text-center lg:text-7xl mt-8 mb-2">Admin Page</h1>
-        <p className="text-center">You are not authorized to use this page.</p>
+
+        {/* Home Page Preview */}
+        <section className="mb-20 relative">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold gradient-text">Home Page</h2>
+          </div>
+
+          {/* Quick Stats Section */}
+          <div className="mb-12 relative">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-2xl font-semibold text-gray-300">Quick Stats</h3>
+              <AddButton
+                onClick={() =>
+                  setEditModal({
+                    isOpen: true,
+                    type: "quickstat",
+                    data: null,
+                    fields: [
+                      { name: "value", label: "Value", type: "text", required: true },
+                      { name: "label", label: "Label", type: "text", required: true },
+                      { name: "sublabel", label: "Sublabel", type: "text", required: true },
+                      { name: "order", label: "Order", type: "number", required: false },
+                    ],
+                  })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {quickStats.map((stat) => (
+                <div key={stat.id} className="glass rounded-xl p-6 text-center hover-lift relative">
+                  <DeleteButton onClick={() => handleDelete("quickstat", stat.id)} />
+                  <EditButton
+                    onClick={() =>
+                      setEditModal({
+                        isOpen: true,
+                        type: "quickstat",
+                        data: stat,
+                        fields: [
+                          { name: "value", label: "Value", type: "text", required: true },
+                          { name: "label", label: "Label", type: "text", required: true },
+                          { name: "sublabel", label: "Sublabel", type: "text", required: true },
+                          { name: "order", label: "Order", type: "number", required: false },
+                        ],
+                      })
+                    }
+                  />
+                  <div className="text-3xl font-bold gradient-text mb-2">{stat.value}</div>
+                  <div className="text-sm font-semibold text-gray-300">{stat.label}</div>
+                  <div className="text-xs text-gray-500 mt-1">{stat.sublabel}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Latest Projects Section */}
+          <div className="mb-12 relative">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-2xl font-semibold text-gray-300">Latest Projects</h3>
+              <AddButton
+                onClick={() =>
+                  setEditModal({
+                    isOpen: true,
+                    type: "project",
+                    data: null,
+                    fields: [
+                      { name: "urlTitle", label: "URL Title", type: "text", required: true },
+                      { name: "title", label: "Title", type: "text", required: true },
+                      { name: "descriptions", label: "Description", type: "textarea", required: true },
+                      { name: "images", label: "Images (JSON array)", type: "textarea", required: true },
+                      { name: "links", label: "Links (JSON array)", type: "textarea", required: false },
+                      { name: "technologies", label: "Technologies (JSON array)", type: "textarea", required: false },
+                      { name: "projectType", label: "Type", type: "text", required: false },
+                      { name: "date", label: "Date", type: "text", required: false },
+                    ],
+                  })
+                }
+              />
+            </div>
+            {projects.length > 0 && <LatestProjects projects={projects} />}
+            <div className="mt-4 space-y-2">
+              {projects.map((project) => (
+                <div key={project.id} className="glass rounded-lg p-4 flex items-center justify-between relative">
+                  <DeleteButton onClick={() => handleDelete("project", project.id)} />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-200">{project.title}</h4>
+                    <p className="text-sm text-gray-400">{project.type} - {project.date}</p>
+                  </div>
+                  <EditButton
+                    onClick={() =>
+                      setEditModal({
+                        isOpen: true,
+                        type: "project",
+                        data: project,
+                        fields: [
+                          { name: "urlTitle", label: "URL Title", type: "text", required: true },
+                          { name: "title", label: "Title", type: "text", required: true },
+                          { name: "descriptions", label: "Description", type: "textarea", required: true },
+                          { name: "images", label: "Images (JSON array)", type: "textarea", required: true },
+                          { name: "links", label: "Links (JSON array)", type: "textarea", required: false },
+                          { name: "technologies", label: "Technologies (JSON array)", type: "textarea", required: false },
+                          { name: "projectType", label: "Type", type: "text", required: false },
+                          { name: "date", label: "Date", type: "text", required: false },
+                        ],
+                      })
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Top Skills Section */}
+          <div className="mb-12 relative">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-2xl font-semibold text-gray-300">Top Skills</h3>
+              <AddButton
+                onClick={() =>
+                  setEditModal({
+                    isOpen: true,
+                    type: "topskill",
+                    data: null,
+                    fields: [
+                      { name: "name", label: "Name", type: "text", required: true },
+                      { name: "proficiency", label: "Proficiency (%)", type: "number", required: true, min: 0, max: 100 },
+                      {
+                        name: "category",
+                        label: "Category",
+                        type: "select",
+                        required: true,
+                        options: [
+                          { value: "languages", label: "Languages" },
+                          { value: "frameworks", label: "Frameworks" },
+                          { value: "apis", label: "APIs" },
+                          { value: "tools", label: "Tools" },
+                        ],
+                      },
+                      { name: "order", label: "Order", type: "number", required: false },
+                    ],
+                  })
+                }
+              />
+            </div>
+            <TopSkills />
+            <div className="mt-4 space-y-2">
+              {topSkills.map((skill) => (
+                <div key={skill.id} className="glass rounded-lg p-4 flex items-center justify-between relative">
+                  <DeleteButton onClick={() => handleDelete("topskill", skill.id)} />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-200">{skill.name}</h4>
+                    <p className="text-sm text-gray-400">{skill.proficiency}% - {skill.category}</p>
+                  </div>
+                  <EditButton
+                    onClick={() =>
+                      setEditModal({
+                        isOpen: true,
+                        type: "topskill",
+                        data: skill,
+                        fields: [
+                          { name: "name", label: "Name", type: "text", required: true },
+                          { name: "proficiency", label: "Proficiency (%)", type: "number", required: true, min: 0, max: 100 },
+                          {
+                            name: "category",
+                            label: "Category",
+                            type: "select",
+                            required: true,
+                            options: [
+                              { value: "languages", label: "Languages" },
+                              { value: "frameworks", label: "Frameworks" },
+                              { value: "apis", label: "APIs" },
+                              { value: "tools", label: "Tools" },
+                            ],
+                          },
+                          { name: "order", label: "Order", type: "number", required: false },
+                        ],
+                      })
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* About Preview */}
+          <div className="mb-12">
+            <h3 className="text-2xl font-semibold text-gray-300 mb-4">About Preview</h3>
+            <AboutPreview />
+          </div>
+
+          {/* Contact Preview */}
+          <div className="mb-12">
+            <h3 className="text-2xl font-semibold text-gray-300 mb-4">Contact Preview</h3>
+            <ContactPreview />
+          </div>
+        </section>
+
+        {/* Experience Page */}
+        <section className="mb-20 relative">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold gradient-text">Experience Page</h2>
+            <div className="flex gap-2">
+              <AddButton
+                label="Add Skill"
+                onClick={() =>
+                  setEditModal({
+                    isOpen: true,
+                    type: "skill",
+                    data: null,
+                    fields: [
+                      {
+                        name: "category",
+                        label: "Category",
+                        type: "select",
+                        required: true,
+                        options: [
+                          { value: "languages", label: "Languages" },
+                          { value: "frameworks", label: "Frameworks" },
+                          { value: "apis", label: "APIs" },
+                          { value: "tools", label: "Tools" },
+                        ],
+                      },
+                      { name: "name", label: "Name", type: "text", required: true },
+                      { name: "description", label: "Description", type: "textarea", required: true },
+                    ],
+                  })
+                }
+              />
+              <AddButton
+                label="Add Education"
+                onClick={() =>
+                  setEditModal({
+                    isOpen: true,
+                    type: "education",
+                    data: null,
+                    fields: [
+                      {
+                        name: "category",
+                        label: "Category",
+                        type: "select",
+                        required: true,
+                        options: [
+                          { value: "coursework", label: "Coursework" },
+                          { value: "certifications", label: "Certifications" },
+                          { value: "courses", label: "Courses" },
+                          { value: "awards", label: "Awards" },
+                        ],
+                      },
+                      { name: "name", label: "Name", type: "text", required: true },
+                      { name: "description", label: "Description", type: "textarea", required: true },
+                      { name: "link", label: "Link", type: "text", required: false },
+                      { name: "linkText", label: "Link Text", type: "text", required: false },
+                    ],
+                  })
+                }
+              />
+            </div>
+          </div>
+          <ExperienceContent />
+          <div className="mt-8 space-y-4">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-300 mb-2">Skills List</h3>
+              {skills.map((skill) => (
+                <div key={skill.id} className="glass rounded-lg p-4 flex items-center justify-between relative mb-2">
+                  <DeleteButton onClick={() => handleDelete("skill", skill.id, skill.name)} />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-200">{skill.name}</h4>
+                    <p className="text-sm text-gray-400">{skill.category} - {skill.description}</p>
+                  </div>
+                  <EditButton
+                    onClick={() =>
+                      setEditModal({
+                        isOpen: true,
+                        type: "skill",
+                        data: skill,
+                        fields: [
+                          {
+                            name: "category",
+                            label: "Category",
+                            type: "select",
+                            required: true,
+                            options: [
+                              { value: "languages", label: "Languages" },
+                              { value: "frameworks", label: "Frameworks" },
+                              { value: "apis", label: "APIs" },
+                              { value: "tools", label: "Tools" },
+                            ],
+                          },
+                          { name: "name", label: "Name", type: "text", required: true },
+                          { name: "description", label: "Description", type: "textarea", required: true },
+                        ],
+                      })
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-300 mb-2">Education List</h3>
+              {education.map((edu) => (
+                <div key={edu.id} className="glass rounded-lg p-4 flex items-center justify-between relative mb-2">
+                  <DeleteButton onClick={() => handleDelete("education", edu.id, edu.name)} />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-200">{edu.name}</h4>
+                    <p className="text-sm text-gray-400">{edu.category} - {edu.description}</p>
+                  </div>
+                  <EditButton
+                    onClick={() =>
+                      setEditModal({
+                        isOpen: true,
+                        type: "education",
+                        data: edu,
+                        fields: [
+                          {
+                            name: "category",
+                            label: "Category",
+                            type: "select",
+                            required: true,
+                            options: [
+                              { value: "coursework", label: "Coursework" },
+                              { value: "certifications", label: "Certifications" },
+                              { value: "courses", label: "Courses" },
+                              { value: "awards", label: "Awards" },
+                            ],
+                          },
+                          { name: "name", label: "Name", type: "text", required: true },
+                          { name: "description", label: "Description", type: "textarea", required: true },
+                          { name: "link", label: "Link", type: "text", required: false },
+                          { name: "linkText", label: "Link Text", type: "text", required: false },
+                        ],
+                      })
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* About Page */}
+        <section className="mb-20 relative">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold gradient-text">About Page</h2>
+          </div>
+          <WhoAmI />
+          <Background />
+        </section>
+
+        {/* Portfolio Page */}
+        <section className="mb-20 relative">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold gradient-text">Portfolio Page</h2>
+          </div>
+          <PortfolioSectionClient />
+        </section>
+      </div>
+
+      {/* Edit Modal */}
+      {editModal.isOpen && (
+        <EditModal
+          isOpen={editModal.isOpen}
+          onClose={() => setEditModal({ isOpen: false, type: null, data: null, fields: [] })}
+          onSave={handleSave}
+          title={`${editModal.data ? "Edit" : "Add"} ${editModal.type}`}
+          fields={editModal.fields || []}
+          initialData={editModal.data || {}}
+        />
+      )}
     </div>
-</div>
+  );
 }
