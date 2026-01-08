@@ -6,21 +6,36 @@ import Image from "next/image";
 import { useAuth } from "./authprovider";
 import { useEditable } from "./useeditable";
 import EditButton from "./editbutton";
-import DeleteButton from "./deletebutton";
-import AddButton from "./addbutton";
 
 export default function EditableTopSkills() {
   const { isAuthenticated } = useAuth();
   const [topSkills, setTopSkills] = useState([]);
   const [animatedWidths, setAnimatedWidths] = useState({});
   const [loading, setLoading] = useState(true);
-  const { openEditModal, handleDelete, EditModalComponent } = useEditable("topskill", () => {
-    fetchTopSkills();
-  });
+  const [skillCount, setSkillCount] = useState(8); // Default to 8 skills
+  const { openEditModal, EditModalComponent } = useEditable(
+    "pagecontent",
+    () => {
+      fetchSkillCount();
+      fetchTopSkills();
+    }
+  );
 
   useEffect(() => {
-    fetchTopSkills();
+    const initialize = async () => {
+      await fetchSkillCount();
+      // fetchTopSkills will be called when skillCount is set
+    };
+    initialize();
   }, []);
+
+  useEffect(() => {
+    // Fetch skills when skillCount is available (after initial load or when changed)
+    if (skillCount > 0) {
+      fetchTopSkills(skillCount);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skillCount]);
 
   useEffect(() => {
     if (!loading) {
@@ -37,12 +52,36 @@ export default function EditableTopSkills() {
     }
   }, [topSkills, loading]);
 
-  const fetchTopSkills = async () => {
+  const fetchSkillCount = async () => {
     try {
-      const response = await fetch("/api/topskills");
+      const response = await fetch(
+        "/api/pagecontent?page=home&section=top-skills"
+      );
       if (response.ok) {
         const data = await response.json();
-        setTopSkills(data.data || []);
+        const countSetting = data.data?.find(
+          (item) => item.key === "top-skills-count"
+        );
+        if (countSetting) {
+          setSkillCount(parseInt(countSetting.content) || 8);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching skill count:", error);
+    }
+  };
+
+  const fetchTopSkills = async (count = skillCount) => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/skillshandler");
+      if (response.ok) {
+        const data = await response.json();
+        // Sort by proficiency descending and take first N
+        const allSkills = (data.data || []).sort(
+          (a, b) => (b.proficiency || 0) - (a.proficiency || 0)
+        );
+        setTopSkills(allSkills.slice(0, count));
       }
     } catch (error) {
       console.error("Error fetching top skills:", error);
@@ -62,33 +101,35 @@ export default function EditableTopSkills() {
     return `/technologyimages/${imageName}.png`;
   };
 
-  const skillFields = [
-    { name: "name", label: "Name", type: "text", required: true },
-    { name: "proficiency", label: "Proficiency (%)", type: "number", required: true, min: 0, max: 100 },
-    {
-      name: "category",
-      label: "Category",
-      type: "select",
-      required: true,
-      options: [
-        { value: "languages", label: "Languages" },
-        { value: "frameworks", label: "Frameworks" },
-        { value: "apis", label: "APIs" },
-        { value: "tools", label: "Tools" },
-      ],
-    },
-    { name: "order", label: "Order", type: "number", required: false },
-  ];
+  const handleEditCount = () => {
+    const countFields = [
+      {
+        name: "content",
+        label: "Number of Skills to Show",
+        type: "number",
+        required: true,
+        min: 1,
+        max: 20,
+      },
+    ];
+    openEditModal(
+      {
+        key: "top-skills-count",
+        page: "home",
+        section: "top-skills",
+        content: skillCount.toString(),
+        type: "number",
+      },
+      countFields
+    );
+  };
 
   return (
     <>
       <section className="w-full mb-20 fade-in relative">
         {isAuthenticated && (
           <div className="absolute top-0 right-0 z-10">
-            <AddButton
-              onClick={() => openEditModal(null, skillFields)}
-              label="Add Skill"
-            />
+            <EditButton onClick={handleEditCount} label="Edit Count" />
           </div>
         )}
         <div className="flex items-center justify-between mb-8">
@@ -119,7 +160,8 @@ export default function EditableTopSkills() {
           </div>
         ) : topSkills.length === 0 ? (
           <div className="text-center text-gray-400 py-8">
-            No top skills available. {isAuthenticated && "Add your first skill!"}
+            No skills available.{" "}
+            {isAuthenticated && "Add skills in the experience section!"}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -141,18 +183,6 @@ export default function EditableTopSkills() {
                     animation: `floatIn 0.6s ease-out ${index * 0.05}s both`,
                   }}
                 >
-                  {isAuthenticated && (
-                    <>
-                      <EditButton
-                        onClick={() => openEditModal(skill, skillFields)}
-                        className="absolute top-2 right-2 z-10"
-                      />
-                      <DeleteButton
-                        onClick={() => handleDelete(skill.id)}
-                        className="absolute top-2 left-2 z-10"
-                      />
-                    </>
-                  )}
                   <div className="flex items-center gap-3 mb-3">
                     {hasTechImage && (
                       <div className="w-10 h-10 flex-shrink-0 relative">
@@ -171,7 +201,7 @@ export default function EditableTopSkills() {
                           {skill.name}
                         </h3>
                         <span className="text-lg font-bold gradient-text">
-                          {skill.proficiency}%
+                          {skill.proficiency || 0}%
                         </span>
                       </div>
                     </div>
@@ -194,4 +224,3 @@ export default function EditableTopSkills() {
     </>
   );
 }
-

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import DeleteButton from "./deletebutton";
 
-export default function ProjectImages({ images }) {
+export default function ProjectImages({ images, onDelete = null }) {
   const [currentImage, changeCurrentImage] = useState(0);
   const currentIndex = Math.abs(currentImage) % images.length;
 
@@ -19,6 +20,18 @@ export default function ProjectImages({ images }) {
     <div className="w-full flex justify-center flex-col">
       {/* Main Image Display */}
       <div className="relative flex justify-center items-center mb-6 group">
+        {onDelete && (
+          <div className="absolute top-4 right-4 z-20">
+            <DeleteButton
+              onClick={() => {
+                onDelete(currentIndex);
+                if (currentIndex >= images.length - 1 && currentIndex > 0) {
+                  changeCurrentImage(currentIndex - 1);
+                }
+              }}
+            />
+          </div>
+        )}
         <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition duration-300"></div>
         <div className="relative glass rounded-2xl p-2 sm:p-4 overflow-hidden w-full">
           <div className="flex justify-center items-center h-[40vh] sm:h-[50vh] md:h-[60vh] lg:h-[70vh] max-h-[800px]">

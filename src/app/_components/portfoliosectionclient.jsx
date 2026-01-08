@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import PortfolioResult from "./portfolioresult";
+import { useAuth } from "./authprovider";
+import AddButton from "./addbutton";
 
 export default function PortfolioSectionClient() {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,9 +59,48 @@ export default function PortfolioSectionClient() {
     );
   }
 
+  const createNewProject = async () => {
+    try {
+      const response = await fetch("/api/projectshandler", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "new",
+          urlTitle: `new-project-${Date.now()}`,
+          title: "New Project",
+          descriptions: JSON.stringify(["Add your project description here."]),
+          images: JSON.stringify([]),
+          links: JSON.stringify([]),
+          technologies: JSON.stringify([]),
+          projectType: "website",
+          date: new Date().toISOString().split('T')[0]
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Redirect to the new project page
+        router.push(`/portfolio/${data.data.url_title}`);
+      } else {
+        alert("Error creating project");
+      }
+    } catch (error) {
+      console.error("Error creating project:", error);
+      alert("Error creating project");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center py-20 px-6">
-      <div className="text-center mb-16 fade-in">
+      <div className="text-center mb-16 fade-in relative w-full max-w-7xl">
+        {isAuthenticated && (
+          <div className="absolute top-0 right-0">
+            <AddButton
+              onClick={createNewProject}
+              label="Create New Project"
+            />
+          </div>
+        )}
         <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-4 uppercase tracking-wider">
           <span className="gradient-text">Portfolio</span>
         </h1>

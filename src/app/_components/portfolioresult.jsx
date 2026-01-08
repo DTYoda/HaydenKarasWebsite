@@ -1,6 +1,17 @@
 import Image from "next/image";
 
 export default function PortfolioResult({ link, title, type, date, image }) {
+  // Handle both local paths and Supabase URLs
+  const getImageSrc = () => {
+    if (!image) return "/icon.png"; // Fallback
+    // If it's already a full URL (Supabase), return as is
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    // Otherwise, construct local path
+    return "/" + link + "/" + image;
+  };
+
   return (
     <a className="w-64 text-left group block" href={"/portfolio/" + link}>
       <div className="relative overflow-hidden rounded-2xl mb-4 hover-lift">
@@ -10,7 +21,7 @@ export default function PortfolioResult({ link, title, type, date, image }) {
           height={256}
           width={256}
           className="w-64 h-64 object-cover group-hover:scale-110 transition-transform duration-500"
-          src={"/" + link + "/" + image}
+          src={getImageSrc()}
           alt={title}
         />
       </div>
