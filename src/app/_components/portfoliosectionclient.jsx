@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import PortfolioResult from "./portfolioresult";
 import { useAuth } from "./authprovider";
@@ -10,11 +10,45 @@ export default function PortfolioSectionClient() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const [projects, setProjects] = useState([]);
+  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [selectedType, setSelectedType] = useState("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProjects();
   }, []);
+
+  // Calculate available project types and their counts
+  const availableTypes = useMemo(() => {
+    const typeCounts = {};
+    projects.forEach((project) => {
+      const projectType = (project.type || "website").toLowerCase();
+      typeCounts[projectType] = (typeCounts[projectType] || 0) + 1;
+    });
+    return typeCounts;
+  }, [projects]);
+
+  // Map of type values to display labels
+  const typeLabels = {
+    website: "Websites",
+    game: "Games",
+    application: "Applications",
+    "class project": "Class Projects",
+  };
+
+  useEffect(() => {
+    // Filter projects by type
+    if (selectedType === "all") {
+      setFilteredProjects(projects);
+    } else {
+      setFilteredProjects(
+        projects.filter((project) => {
+          const projectType = (project.type || "website").toLowerCase();
+          return projectType === selectedType.toLowerCase();
+        })
+      );
+    }
+  }, [selectedType, projects]);
 
   const fetchProjects = async () => {
     try {
@@ -33,7 +67,15 @@ export default function PortfolioSectionClient() {
           type: p.type,
           date: p.date
         }));
-        setProjects(converted);
+        // Sort by date (newest first)
+        const sorted = converted.sort((a, b) => {
+          const dateA = a.date || "";
+          const dateB = b.date || "";
+          // Compare YYYY-MM format strings (descending order)
+          return dateB.localeCompare(dateA);
+        });
+        setProjects(sorted);
+        setFilteredProjects(sorted);
       }
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -109,8 +151,42 @@ export default function PortfolioSectionClient() {
         </p>
         <div className="w-24 h-1 bg-orange-500 mx-auto mt-6"></div>
       </div>
+      
+      {/* Filter Section */}
+      <div className="mb-12 flex flex-wrap justify-center gap-4 w-full max-w-7xl">
+        <button
+          onClick={() => setSelectedType("all")}
+          className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
+            selectedType === "all"
+              ? "bg-orange-500 text-white shadow-lg shadow-orange-500/50"
+              : "glass text-orange-500 hover:bg-orange-500/10 border border-orange-500/20"
+          }`}
+        >
+          All Projects
+        </button>
+        {Object.entries(availableTypes).map(([type, count]) => {
+          // Only show if there's at least one project and we have a label for it
+          if (count > 0 && typeLabels[type]) {
+            return (
+              <button
+                key={type}
+                onClick={() => setSelectedType(type)}
+                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                  selectedType === type
+                    ? "bg-orange-500 text-white shadow-lg shadow-orange-500/50"
+                    : "glass text-orange-500 hover:bg-orange-500/10 border border-orange-500/20"
+                }`}
+              >
+                {typeLabels[type]}
+              </button>
+            );
+          }
+          return null;
+        })}
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 w-full max-w-7xl place-items-center">
-        {projects.map((project, id) => {
+        {filteredProjects.map((project, id) => {
           let image = null;
           try {
             const images = JSON.parse(project.images || '[]');

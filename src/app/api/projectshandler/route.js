@@ -79,6 +79,12 @@ export async function POST(req) {
         date: body.date || "undefined"
       };
 
+      // Only include highlights if it's provided and the column exists
+      // If highlights column doesn't exist, this will be skipped gracefully
+      if (body.highlights !== undefined) {
+        updateData.highlights = typeof body.highlights === 'string' ? body.highlights : JSON.stringify(body.highlights || []);
+      }
+
       console.log("Update data being sent:", updateData);
 
       const { data, error } = await supabase
@@ -90,6 +96,24 @@ export async function POST(req) {
 
       if (error) {
         console.error("Supabase update error:", error);
+        // If error is about highlights column not existing, try without it
+        if (error.message && error.message.includes('highlights')) {
+          console.log("Highlights column doesn't exist, retrying without it");
+          delete updateData.highlights;
+          const { data: retryData, error: retryError } = await supabase
+            .from('projects')
+            .update(updateData)
+            .eq('id', body.id)
+            .select()
+            .single();
+          
+          if (retryError) {
+            console.error("Retry update error:", retryError);
+            throw retryError;
+          }
+          
+          return NextResponse.json({ success: true, message: "Project updated! (Note: highlights column not found in database)", data: retryData }, { status: 200 });
+        }
         throw error;
       }
       

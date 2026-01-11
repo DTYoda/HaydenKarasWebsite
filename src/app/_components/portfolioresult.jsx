@@ -1,5 +1,35 @@
 import Image from "next/image";
 
+// Format date as "Month Year"
+const formatDateDisplay = (dateStr) => {
+  if (!dateStr || dateStr === "undefined" || dateStr === "null") return "";
+  
+  try {
+    // Handle YYYY-MM format
+    const yyyyMmMatch = dateStr.match(/^(\d{4})-(\d{1,2})(?:-\d{1,2})?$/);
+    if (yyyyMmMatch) {
+      const year = parseInt(yyyyMmMatch[1]);
+      const month = parseInt(yyyyMmMatch[2]) - 1; // Month is 0-indexed
+      const date = new Date(year, month, 1);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+      });
+    }
+    
+    // Try parsing as date string
+    const date = new Date(dateStr + "T00:00:00");
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+      });
+    }
+  } catch {}
+  
+  return dateStr;
+};
+
 export default function PortfolioResult({ link, title, type, date, image }) {
   // Handle both local paths and Supabase URLs
   const getImageSrc = () => {
@@ -33,7 +63,7 @@ export default function PortfolioResult({ link, title, type, date, image }) {
         <div className="text-sm text-orange-500/80 font-medium mb-1">
           {type}
         </div>
-        <div className="text-xs text-gray-500">{date}</div>
+        <div className="text-xs text-gray-500">{formatDateDisplay(date)}</div>
       </div>
     </a>
   );

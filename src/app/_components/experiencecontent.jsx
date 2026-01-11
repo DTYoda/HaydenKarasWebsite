@@ -238,7 +238,6 @@ export default function ExperienceContent() {
   const categoryConfig = {
     languages: { icon: "💻", label: "Languages" },
     frameworks: { icon: "⚡", label: "Frameworks" },
-    apis: { icon: "🔌", label: "APIs" },
     tools: { icon: "🛠️", label: "Tools" },
   };
 
@@ -258,7 +257,6 @@ export default function ExperienceContent() {
       options: [
         { value: "languages", label: "Languages" },
         { value: "frameworks", label: "Frameworks" },
-        { value: "apis", label: "APIs" },
         { value: "tools", label: "Tools" },
       ],
     },
@@ -371,6 +369,7 @@ export default function ExperienceContent() {
           ) : (
             allSkills
               .filter((s) => s.category === activeCategory)
+              .sort((a, b) => (b.proficiency || 0) - (a.proficiency || 0))
               .map((skill, index) => (
                 <div key={skill.id || index} className="relative">
                   {isAuthenticated && (

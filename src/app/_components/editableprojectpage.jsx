@@ -7,11 +7,14 @@ import ProjectImages from "./projectImages";
 import ProjectDescription from "./projectdesc";
 import { useAuth } from "./authprovider";
 import EditButton from "./editbutton";
+import DeleteButton from "./deletebutton";
 import Image from "next/image";
 import Link from "next/link";
 import ProjectEditModal from "./projecteditmodal";
 
-export default function EditableProjectPage({ projectData: initialProjectData }) {
+export default function EditableProjectPage({
+  projectData: initialProjectData,
+}) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const [projectData, setProjectData] = useState(initialProjectData);
@@ -26,13 +29,18 @@ export default function EditableProjectPage({ projectData: initialProjectData })
   let desc = {};
   if (projectData) {
     try {
-      const parsed = JSON.parse(projectData.descriptions || '[]');
+      const parsed = JSON.parse(projectData.descriptions || "[]");
       if (Array.isArray(parsed)) {
         // New format: array of objects with title/content
-        if (parsed.length > 0 && typeof parsed[0] === 'object' && parsed[0].title !== undefined) {
+        if (
+          parsed.length > 0 &&
+          typeof parsed[0] === "object" &&
+          parsed[0].title !== undefined
+        ) {
           // Convert array of {title, content} to object {title: content}
           desc = parsed.reduce((acc, item) => {
-            const title = item.title || `Paragraph ${Object.keys(acc).length + 1}`;
+            const title =
+              item.title || `Paragraph ${Object.keys(acc).length + 1}`;
             acc[title] = item.content || "";
             return acc;
           }, {});
@@ -43,27 +51,30 @@ export default function EditableProjectPage({ projectData: initialProjectData })
             return acc;
           }, {});
         }
-      } else if (typeof parsed === 'object') {
+      } else if (typeof parsed === "object") {
         // Old format: object with keys
         desc = parsed;
       }
     } catch (e) {
-      desc = { "Description": "" };
+      desc = { Description: "" };
     }
   }
-  const images = projectData ? JSON.parse(projectData.images || '[]') : [];
+  const images = projectData ? JSON.parse(projectData.images || "[]") : [];
   // First image is thumbnail, rest are display images
   // If images array has items, use all of them (first is thumbnail, rest are gallery)
   // If no images, show empty state
-  const displayImages = images.length > 1 ? images.slice(1) : images.length === 1 ? images : [];
-  const links = projectData ? JSON.parse(projectData.links || '[]') : [];
-  const technologies = projectData ? JSON.parse(projectData.technologies || '[]') : [];
+  const displayImages =
+    images.length > 1 ? images.slice(1) : images.length === 1 ? images : [];
+  const links = projectData ? JSON.parse(projectData.links || "[]") : [];
+  const technologies = projectData
+    ? JSON.parse(projectData.technologies || "[]")
+    : [];
 
   // Helper to get image URL (handles both local and Supabase URLs)
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
     // If it's already a full URL (Supabase), return as is
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
       return imagePath;
     }
     // If it's a local path, construct the full path
@@ -74,9 +85,9 @@ export default function EditableProjectPage({ projectData: initialProjectData })
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('projectId', projectData.id);
-      formData.append('fileName', file.name);
+      formData.append("file", file);
+      formData.append("projectId", projectData.id);
+      formData.append("fileName", file.name);
 
       const response = await fetch("/api/upload-image", {
         method: "POST",
@@ -86,7 +97,7 @@ export default function EditableProjectPage({ projectData: initialProjectData })
       if (response.ok) {
         const data = await response.json();
         const newImages = [...images];
-        
+
         if (index === null) {
           // Add new image
           if (newImages.length === 0) {
@@ -103,9 +114,15 @@ export default function EditableProjectPage({ projectData: initialProjectData })
 
         await updateProject({ images: JSON.stringify(newImages) });
       } else {
-        const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "Unknown error" }));
         console.error("Upload error:", errorData);
-        alert(`Error uploading image: ${errorData.message || "Please check console for details"}`);
+        alert(
+          `Error uploading image: ${
+            errorData.message || "Please check console for details"
+          }`
+        );
       }
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -120,9 +137,9 @@ export default function EditableProjectPage({ projectData: initialProjectData })
 
     try {
       const imageUrl = displayImages[index];
-      
+
       // Extract path from Supabase URL if it's a Supabase URL
-      if (imageUrl && imageUrl.includes('supabase')) {
+      if (imageUrl && imageUrl.includes("supabase")) {
         try {
           const url = new URL(imageUrl);
           const pathMatch = url.pathname.match(/\/project-images\/(.+)$/);
@@ -133,7 +150,9 @@ export default function EditableProjectPage({ projectData: initialProjectData })
             });
           }
         } catch (e) {
-          console.log("Could not extract path from URL, continuing with deletion");
+          console.log(
+            "Could not extract path from URL, continuing with deletion"
+          );
         }
       }
 
@@ -150,26 +169,30 @@ export default function EditableProjectPage({ projectData: initialProjectData })
       // Ensure JSON fields are strings (they should already be from the modal)
       const newUrlTitle = updates.urlTitle || projectData.url_title;
       const urlTitleChanged = newUrlTitle !== projectData.url_title;
-      
+
       const payload = {
         type: "edit",
         id: projectData.id,
         urlTitle: newUrlTitle,
         title: updates.title || projectData.title,
-        descriptions: typeof updates.descriptions === 'string' 
-          ? updates.descriptions 
-          : (updates.descriptions || projectData.descriptions),
-        images: typeof updates.images === 'string' 
-          ? updates.images 
-          : (updates.images || projectData.images),
-        links: typeof updates.links === 'string' 
-          ? updates.links 
-          : (updates.links || projectData.links),
-        technologies: typeof updates.technologies === 'string' 
-          ? updates.technologies 
-          : (updates.technologies || projectData.technologies),
+        descriptions:
+          typeof updates.descriptions === "string"
+            ? updates.descriptions
+            : updates.descriptions || projectData.descriptions,
+        images:
+          typeof updates.images === "string"
+            ? updates.images
+            : updates.images || projectData.images,
+        links:
+          typeof updates.links === "string"
+            ? updates.links
+            : updates.links || projectData.links,
+        technologies:
+          typeof updates.technologies === "string"
+            ? updates.technologies
+            : updates.technologies || projectData.technologies,
         projectType: updates.projectType || projectData.type,
-        date: updates.date || projectData.date
+        date: updates.date || projectData.date,
       };
 
       console.log("Sending update payload:", payload);
@@ -177,20 +200,20 @@ export default function EditableProjectPage({ projectData: initialProjectData })
       const response = await fetch("/api/projectshandler", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         const responseData = await response.json();
-        
+
         if (!responseData.data) {
           console.error("No data in response:", responseData);
           alert("Error: No data returned from update");
           return;
         }
-        
+
         const updatedProject = responseData.data;
-        
+
         // If URL title changed, navigate to the new URL
         if (urlTitleChanged) {
           router.push(`/portfolio/${updatedProject.url_title}`);
@@ -200,9 +223,15 @@ export default function EditableProjectPage({ projectData: initialProjectData })
           router.refresh();
         }
       } else {
-        const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "Unknown error" }));
         console.error("Update error:", errorData);
-        alert(`Error updating project: ${errorData.message || "Please check console for details"}`);
+        alert(
+          `Error updating project: ${
+            errorData.message || "Please check console for details"
+          }`
+        );
       }
     } catch (error) {
       console.error("Error updating project:", error);
@@ -210,6 +239,44 @@ export default function EditableProjectPage({ projectData: initialProjectData })
     }
   };
 
+  const handleDeleteProject = async () => {
+    if (
+      !confirm(
+        `Are you sure you want to delete "${projectData.title}"? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/projectshandler", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "delete",
+          id: projectData.id,
+        }),
+      });
+
+      if (response.ok) {
+        // Redirect to portfolio page after successful deletion
+        router.push("/portfolio");
+      } else {
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "Unknown error" }));
+        console.error("Delete error:", errorData);
+        alert(
+          `Error deleting project: ${
+            errorData.message || "Please check console for details"
+          }`
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      alert("Error deleting project");
+    }
+  };
 
   if (!projectData) {
     return <div>Project not found</div>;
@@ -222,10 +289,14 @@ export default function EditableProjectPage({ projectData: initialProjectData })
         {/* Project Header */}
         <div className="text-center mb-12 fade-in max-w-4xl relative w-full">
           {isAuthenticated && (
-            <EditButton
-              onClick={() => setEditModal({ isOpen: true, section: "header" })}
-              className="absolute top-0 right-0"
-            />
+            <div className="absolute top-0 right-0 flex gap-2">
+              <EditButton
+                onClick={() =>
+                  setEditModal({ isOpen: true, section: "header" })
+                }
+              />
+              <DeleteButton onClick={handleDeleteProject} />
+            </div>
           )}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
             <span className="gradient-text">{projectData.title}</span>
@@ -262,7 +333,9 @@ export default function EditableProjectPage({ projectData: initialProjectData })
             </>
           ) : (
             <div className="text-center text-gray-400 py-12 glass rounded-2xl">
-              {isAuthenticated ? "No images yet. Add your first image!" : "No images available."}
+              {isAuthenticated
+                ? "No images yet. Add your first image!"
+                : "No images available."}
             </div>
           )}
         </div>
@@ -284,11 +357,15 @@ export default function EditableProjectPage({ projectData: initialProjectData })
           <div className="glass rounded-2xl p-8 hover-lift w-full sm:w-auto relative">
             {isAuthenticated && (
               <EditButton
-                onClick={() => setEditModal({ isOpen: true, section: "project" })}
+                onClick={() =>
+                  setEditModal({ isOpen: true, section: "project" })
+                }
                 className="absolute top-4 right-4"
               />
             )}
-            <h2 className="text-2xl font-bold mb-6 text-orange-500">Technologies</h2>
+            <h2 className="text-2xl font-bold mb-6 text-orange-500">
+              Technologies
+            </h2>
             <div className="flex flex-wrap gap-6 justify-center items-center">
               {technologies.length > 0 ? (
                 technologies.map((tech, id) => (
@@ -312,7 +389,9 @@ export default function EditableProjectPage({ projectData: initialProjectData })
                 ))
               ) : (
                 <p className="text-gray-400 text-sm">
-                  {isAuthenticated ? "No technologies. Click edit to add." : "No technologies listed."}
+                  {isAuthenticated
+                    ? "No technologies. Click edit to add."
+                    : "No technologies listed."}
                 </p>
               )}
             </div>
@@ -322,7 +401,9 @@ export default function EditableProjectPage({ projectData: initialProjectData })
           <div className="glass rounded-2xl p-8 hover-lift w-full sm:w-auto relative">
             {isAuthenticated && (
               <EditButton
-                onClick={() => setEditModal({ isOpen: true, section: "project" })}
+                onClick={() =>
+                  setEditModal({ isOpen: true, section: "project" })
+                }
                 className="absolute top-4 right-4"
               />
             )}
@@ -350,7 +431,9 @@ export default function EditableProjectPage({ projectData: initialProjectData })
                 ))
               ) : (
                 <p className="text-gray-400 text-sm">
-                  {isAuthenticated ? "No links. Click edit to add." : "No links available."}
+                  {isAuthenticated
+                    ? "No links. Click edit to add."
+                    : "No links available."}
                 </p>
               )}
             </div>
@@ -375,11 +458,10 @@ export default function EditableProjectPage({ projectData: initialProjectData })
             technologies: projectData.technologies,
             images: projectData.images,
             type: projectData.type,
-            date: projectData.date
+            date: projectData.date,
           }}
         />
       )}
     </div>
   );
 }
-

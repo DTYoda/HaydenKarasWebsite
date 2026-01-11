@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function ProjectEditModal({
   isOpen,
@@ -17,10 +17,17 @@ export default function ProjectEditModal({
     images: [],
     projectType: "",
     date: "",
+    highlights: [],
   });
+  const initializedProjectRef = useRef(null);
 
   useEffect(() => {
     if (projectData && isOpen) {
+      // Only initialize if this is a different project
+      if (initializedProjectRef.current === projectData.url_title) {
+        return; // Don't reset if already initialized with this project
+      }
+      initializedProjectRef.current = projectData.url_title;
       // Parse JSON fields
       let descriptions = [];
       let links = [];
@@ -75,6 +82,15 @@ export default function ProjectEditModal({
       try {
         technologies = JSON.parse(projectData.technologies || "[]");
         if (!Array.isArray(technologies)) technologies = [];
+        // Ensure each technology has all fields
+        technologies = technologies.map((tech) => ({
+          title: tech.title || "",
+          link: tech.link || "",
+          category: tech.category || "",
+          proficiency: tech.proficiency || "",
+          color: tech.color || "",
+          icon: tech.icon || "",
+        }));
       } catch (e) {
         technologies = [];
       }
@@ -87,6 +103,30 @@ export default function ProjectEditModal({
         images = [];
       }
 
+      let highlights = [];
+      try {
+        highlights = JSON.parse(projectData.highlights || "[]");
+        if (!Array.isArray(highlights)) highlights = [];
+        // Ensure each highlight has all fields
+        highlights = highlights.map((h) => ({
+          icon: h.icon || "",
+          title: h.title || "",
+          description: h.description || "",
+        }));
+      } catch (e) {
+        highlights = [];
+      }
+
+      // Default highlights if none exist
+      if (highlights.length === 0) {
+        highlights = [
+          { icon: "🚀", title: "Full-Stack", description: "Complete Application" },
+          { icon: "⚡", title: "Modern Stack", description: "Latest Technologies" },
+          { icon: "🎯", title: "Production Ready", description: "Deployed & Live" },
+          { icon: "💡", title: "Innovative", description: "Unique Solutions" },
+        ];
+      }
+
       setFormData({
         urlTitle: projectData.url_title || "",
         title: projectData.title || "",
@@ -96,10 +136,18 @@ export default function ProjectEditModal({
             : [{ title: "Paragraph 1", content: "" }],
         links: links.length > 0 ? links : [{ title: "", link: "" }],
         technologies:
-          technologies.length > 0 ? technologies : [{ title: "", link: "" }],
+          technologies.length > 0
+            ? technologies
+            : [{ title: "", link: "", category: "", proficiency: "", color: "", icon: "" }],
         images: images,
         projectType: projectData.type || "website",
         date: projectData.date || "",
+        highlights: highlights.length > 0 ? highlights : [
+          { icon: "🚀", title: "", description: "" },
+          { icon: "⚡", title: "", description: "" },
+          { icon: "🎯", title: "", description: "" },
+          { icon: "💡", title: "", description: "" },
+        ],
       });
     }
   }, [projectData, isOpen]);
@@ -137,14 +185,30 @@ export default function ProjectEditModal({
         )
       ),
       technologies: JSON.stringify(
-        formData.technologies.filter(
-          (t) =>
-            t.title && t.title.trim() !== "" && t.link && t.link.trim() !== ""
-        )
+        formData.technologies
+          .filter((t) => t.title && t.title.trim() !== "")
+          .map((t) => {
+            const tech = { title: t.title };
+            if (t.link && t.link.trim() !== "") tech.link = t.link;
+            if (t.category && t.category.trim() !== "") tech.category = t.category;
+            if (t.proficiency !== "" && t.proficiency !== null) tech.proficiency = parseInt(t.proficiency);
+            if (t.color && t.color.trim() !== "") tech.color = t.color;
+            if (t.icon && t.icon.trim() !== "") tech.icon = t.icon;
+            return tech;
+          })
       ),
       images: JSON.stringify(formData.images),
       projectType: formData.projectType,
       date: formData.date,
+      highlights: JSON.stringify(
+        formData.highlights
+          .filter((h) => h.title && h.title.trim() !== "")
+          .map((h) => ({
+            icon: h.icon || "",
+            title: h.title || "",
+            description: h.description || "",
+          }))
+      ),
     };
 
     console.log("Submitting project data:", submitData);
@@ -210,7 +274,10 @@ export default function ProjectEditModal({
   const addTechnology = () => {
     setFormData((prev) => ({
       ...prev,
-      technologies: [...prev.technologies, { title: "", link: "" }],
+      technologies: [
+        ...prev.technologies,
+        { title: "", link: "", category: "", proficiency: "", color: "", icon: "" },
+      ],
     }));
   };
 
@@ -309,6 +376,32 @@ export default function ProjectEditModal({
     });
   };
 
+  const updateHighlight = (index, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      highlights: prev.highlights.map((h, i) =>
+        i === index ? { ...h, [field]: value } : h
+      ),
+    }));
+  };
+
+  const addHighlight = () => {
+    setFormData((prev) => ({
+      ...prev,
+      highlights: [
+        ...prev.highlights,
+        { icon: "⭐", title: "", description: "" },
+      ],
+    }));
+  };
+
+  const removeHighlight = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      highlights: prev.highlights.filter((_, i) => i !== index),
+    }));
+  };
+
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
       <div className="glass rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-orange-500/50">
@@ -395,13 +488,41 @@ export default function ProjectEditModal({
                   Date
                 </label>
                 <input
-                  type="text"
-                  value={formData.date}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, date: e.target.value }))
-                  }
+                  type="month"
+                  value={(() => {
+                    // Convert date to YYYY-MM format for month input
+                    if (!formData.date || formData.date === "undefined") return "";
+                    
+                    // If already in YYYY-MM format, use it directly
+                    const yyyyMmMatch = formData.date.match(/^(\d{4})-(\d{1,2})(?:-\d{1,2})?$/);
+                    if (yyyyMmMatch) {
+                      const year = yyyyMmMatch[1];
+                      const month = yyyyMmMatch[2].padStart(2, "0");
+                      return `${year}-${month}`;
+                    }
+                    
+                    // Try parsing as date string
+                    try {
+                      // Parse as YYYY-MM-DD or other date format
+                      const date = new Date(formData.date + "T00:00:00"); // Add time to avoid timezone issues
+                      if (!isNaN(date.getTime())) {
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, "0");
+                        return `${year}-${month}`;
+                      }
+                    } catch {}
+                    return "";
+                  })()}
+                  onChange={(e) => {
+                    // Store as YYYY-MM format (month input returns this format)
+                    setFormData((prev) => ({ ...prev, date: e.target.value || "" }));
+                  }}
                   className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+                  placeholder="YYYY-MM"
                 />
+                <p className="text-xs text-gray-400 mt-1">
+                  Format: YYYY-MM (e.g., 2024-11)
+                </p>
               </div>
             </div>
           </div>
@@ -640,52 +761,203 @@ export default function ProjectEditModal({
             </div>
 
             {formData.technologies.map((tech, index) => (
-              <div key={index} className="flex gap-2 items-center">
-                <div className="flex flex-col gap-1">
+              <div key={index} className="space-y-3 p-4 glass rounded-lg border border-orange-500/20">
+                <div className="flex gap-2 items-center">
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => moveTechnology(index, "up")}
+                      disabled={index === 0}
+                      className="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded px-2 py-1 text-xs transition-all"
+                      title="Move up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveTechnology(index, "down")}
+                      disabled={index === formData.technologies.length - 1}
+                      className="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded px-2 py-1 text-xs transition-all"
+                      title="Move down"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={tech.title || ""}
+                    onChange={(e) =>
+                      updateTechnology(index, "title", e.target.value)
+                    }
+                    className="flex-1 bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+                    placeholder="Technology Name (e.g., React)"
+                  />
+                  <input
+                    type="text"
+                    value={tech.link || ""}
+                    onChange={(e) =>
+                      updateTechnology(index, "link", e.target.value)
+                    }
+                    className="flex-1 bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+                    placeholder="Technology URL (optional)"
+                  />
                   <button
                     type="button"
-                    onClick={() => moveTechnology(index, "up")}
-                    disabled={index === 0}
-                    className="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded px-2 py-1 text-xs transition-all"
-                    title="Move up"
+                    onClick={() => removeTechnology(index)}
+                    className="bg-red-500 hover:bg-red-600 text-white rounded-lg px-3 py-2 font-semibold transition-all"
                   >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveTechnology(index, "down")}
-                    disabled={index === formData.technologies.length - 1}
-                    className="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded px-2 py-1 text-xs transition-all"
-                    title="Move down"
-                  >
-                    ↓
+                    ×
                   </button>
                 </div>
-                <input
-                  type="text"
-                  value={tech.title}
-                  onChange={(e) =>
-                    updateTechnology(index, "title", e.target.value)
-                  }
-                  className="flex-1 bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
-                  placeholder="Technology Name (e.g., React)"
-                />
-                <input
-                  type="text"
-                  value={tech.link}
-                  onChange={(e) =>
-                    updateTechnology(index, "link", e.target.value)
-                  }
-                  className="flex-1 bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
-                  placeholder="Technology URL (optional)"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeTechnology(index)}
-                  className="bg-red-500 hover:bg-red-600 text-white rounded-lg px-3 py-2 font-semibold transition-all"
-                >
-                  ×
-                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1">
+                      Category
+                    </label>
+                    <select
+                      value={tech.category || ""}
+                      onChange={(e) =>
+                        updateTechnology(index, "category", e.target.value)
+                      }
+                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
+                    >
+                      <option value="">Auto-detect</option>
+                      <option value="frontend">Frontend</option>
+                      <option value="backend">Backend</option>
+                      <option value="programming-language">Programming Language</option>
+                      <option value="game-dev">Game Development</option>
+                      <option value="tools">Tools & DevOps</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1">
+                      Proficiency (0-100)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={tech.proficiency || ""}
+                      onChange={(e) =>
+                        updateTechnology(
+                          index,
+                          "proficiency",
+                          e.target.value ? parseInt(e.target.value) : ""
+                        )
+                      }
+                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
+                      placeholder="Auto (0-100)"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1">
+                      Color Gradient
+                    </label>
+                    <input
+                      type="text"
+                      value={tech.color || ""}
+                      onChange={(e) =>
+                        updateTechnology(index, "color", e.target.value)
+                      }
+                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
+                      placeholder="e.g., from-blue-500 to-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1">
+                      Icon (Emoji)
+                    </label>
+                    <input
+                      type="text"
+                      value={tech.icon || ""}
+                      onChange={(e) =>
+                        updateTechnology(index, "icon", e.target.value)
+                      }
+                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
+                      placeholder="e.g., ⚛️"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Key Highlights */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-orange-500">
+                Key Highlights
+              </h3>
+              <button
+                type="button"
+                onClick={addHighlight}
+                className="bg-green-500 hover:bg-green-600 text-white rounded-lg px-3 py-1 text-sm font-semibold transition-all"
+              >
+                + Add Highlight
+              </button>
+            </div>
+
+            {formData.highlights.map((highlight, index) => (
+              <div
+                key={index}
+                className="space-y-3 p-4 glass rounded-lg border border-orange-500/20"
+              >
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1">
+                      Icon (Emoji)
+                    </label>
+                    <input
+                      type="text"
+                      value={highlight.icon || ""}
+                      onChange={(e) =>
+                        updateHighlight(index, "icon", e.target.value)
+                      }
+                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
+                      placeholder="🚀"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      value={highlight.title || ""}
+                      onChange={(e) =>
+                        updateHighlight(index, "title", e.target.value)
+                      }
+                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
+                      placeholder="e.g., Full-Stack"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <button
+                      type="button"
+                      onClick={() => removeHighlight(index)}
+                      className="w-full bg-red-500 hover:bg-red-600 text-white rounded-lg px-3 py-2 font-semibold transition-all"
+                    >
+                      × Remove
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    value={highlight.description || ""}
+                    onChange={(e) =>
+                      updateHighlight(index, "description", e.target.value)
+                    }
+                    className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
+                    placeholder="e.g., Complete Application"
+                  />
+                </div>
               </div>
             ))}
           </div>

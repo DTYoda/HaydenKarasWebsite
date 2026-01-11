@@ -1,5 +1,6 @@
 import "./globals.css";
 import AuthWrapper from "./_components/authwrapper";
+import AdminLogoutButton from "./_components/adminlogoutbutton";
 
 export const metadata = {
   title: "Hayden Karas",
@@ -10,11 +11,9 @@ export const metadata = {
   },
   themeColor: "black",
   other: {
-    colorScheme: "dark", // Adds <meta name="color-scheme" content="dark">
+    colorScheme: "dark", // Adds <meta name=\"color-scheme\" content=\"dark\">
   },
 };
-
-import AdminButton from "./_components/adminbutton";
 
 export default function RootLayout({ children }) {
   return (
@@ -22,7 +21,7 @@ export default function RootLayout({ children }) {
       <body className="min-h-screen h-fit w-full m-0 p-0 overflow-x-hidden">
         <AuthWrapper>
           {children}
-          <AdminButton />
+          <AdminLogoutButton />
         </AuthWrapper>
       </body>
     </html>

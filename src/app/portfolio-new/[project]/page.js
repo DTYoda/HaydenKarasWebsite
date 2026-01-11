@@ -5,8 +5,8 @@ import NewProjectPage from "@/app/_components/newprojectpage";
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
 
-export default async function ProjectPage({ params }) {
-  const { project } = params; // `params` contains the dynamic URL segments
+export default async function ProjectPageNew({ params }) {
+  const { project } = params;
   let projectData = null;
   
   try {
@@ -32,3 +32,4 @@ export default async function ProjectPage({ params }) {
 
   return <NewProjectPage projectData={projectData} />;
 }
+

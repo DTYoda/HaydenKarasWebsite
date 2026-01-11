@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 
 export default function SkillProficiency({ skill, index, category }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -27,25 +26,6 @@ export default function SkillProficiency({ skill, index, category }) {
     return () => clearTimeout(timer);
   }, [proficiency, index]);
 
-  const getTechImage = (name) => {
-    const nameMap = {
-      "C#": "CSharp",
-      "Next.js": "nextjs",
-      "Node.js": "NodeJS",
-      "Tailwind CSS": "tailwind",
-    };
-    const imageName = nameMap[name] || name.replace(/[^a-zA-Z0-9]/g, "");
-    return `/technologyimages/${imageName}.png`;
-  };
-
-  const hasImage = [
-    "C#",
-    "Next.js",
-    "Node.js",
-    "Tailwind CSS",
-    "Unity",
-  ].includes(skill.name);
-
   return (
     <div
       className="relative group h-fit"
@@ -65,17 +45,6 @@ export default function SkillProficiency({ skill, index, category }) {
       >
         {/* Compact Header */}
         <div className="flex items-center gap-3 mb-3">
-          {hasImage && (
-            <div className="w-8 h-8 flex-shrink-0 relative">
-              <Image
-                src={getTechImage(skill.name)}
-                width={32}
-                height={32}
-                alt={skill.name}
-                className="object-contain transition-transform duration-300 group-hover:scale-110"
-              />
-            </div>
-          )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <h3 className="font-bold text-base text-gray-200 truncate">

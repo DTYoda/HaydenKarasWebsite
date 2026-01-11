@@ -5,14 +5,18 @@ export default function StartQuote({ quote, author, links }) {
       {/* Background decorative elements */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl"></div>
-      
+
       <div className="relative z-10 fade-in py-8">
         <div className="mb-6 sm:mb-8">
-          <span className="mono text-orange-500 text-xl sm:text-2xl md:text-3xl">{'"'}</span>
+          <span className="mono text-orange-500 text-xl sm:text-2xl md:text-3xl">
+            {'"'}
+          </span>
           <h1 className="font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight inline">
             {quote}
           </h1>
-          <span className="mono text-orange-500 text-xl sm:text-2xl md:text-3xl">{'"'}</span>
+          <span className="mono text-orange-500 text-xl sm:text-2xl md:text-3xl">
+            {'"'}
+          </span>
         </div>
         <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mt-6 sm:mt-8 mb-6 sm:mb-8">
           <span className="mono text-orange-500 mr-2 sm:mr-3">{">"}</span>
@@ -30,6 +34,23 @@ export default function StartQuote({ quote, author, links }) {
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <svg
+          className="w-8 h-8 text-orange-500/70"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          />
+        </svg>
       </div>
     </div>
   );

@@ -1,8 +1,45 @@
 import Link from "next/link";
 import Image from "next/image";
 
+// Format date as "Month Year"
+const formatDateDisplay = (dateStr) => {
+  if (!dateStr || dateStr === "undefined" || dateStr === "null") return "";
+  
+  try {
+    // Handle YYYY-MM format
+    const yyyyMmMatch = dateStr.match(/^(\d{4})-(\d{1,2})(?:-\d{1,2})?$/);
+    if (yyyyMmMatch) {
+      const year = parseInt(yyyyMmMatch[1]);
+      const month = parseInt(yyyyMmMatch[2]) - 1; // Month is 0-indexed
+      const date = new Date(year, month, 1);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+      });
+    }
+    
+    // Try parsing as date string
+    const date = new Date(dateStr + "T00:00:00");
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+      });
+    }
+  } catch {}
+  
+  return dateStr;
+};
+
 export default function LatestProjects({ projects }) {
-  const latestProjects = projects.slice(0, 3);
+  // Sort projects by date (newest first) and take latest 3
+  const sortedProjects = [...projects].sort((a, b) => {
+    const dateA = a.date || "";
+    const dateB = b.date || "";
+    // Compare YYYY-MM format strings
+    return dateB.localeCompare(dateA);
+  });
+  const latestProjects = sortedProjects.slice(0, 3);
 
   return (
     <section className="w-full mb-20 fade-in">
@@ -58,7 +95,7 @@ export default function LatestProjects({ projects }) {
                 <p className="text-sm text-orange-500/80 font-medium mb-2">
                   {project.type}
                 </p>
-                <p className="text-xs text-gray-500">{project.date}</p>
+                <p className="text-xs text-gray-500">{formatDateDisplay(project.date)}</p>
               </div>
             </Link>
           );

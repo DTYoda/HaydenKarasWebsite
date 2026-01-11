@@ -770,7 +770,6 @@ export default function AdminPage() {
                         options: [
                           { value: "languages", label: "Languages" },
                           { value: "frameworks", label: "Frameworks" },
-                          { value: "apis", label: "APIs" },
                           { value: "tools", label: "Tools" },
                         ],
                       },
@@ -830,7 +829,6 @@ export default function AdminPage() {
                             options: [
                               { value: "languages", label: "Languages" },
                               { value: "frameworks", label: "Frameworks" },
-                              { value: "apis", label: "APIs" },
                               { value: "tools", label: "Tools" },
                             ],
                           },
@@ -889,7 +887,6 @@ export default function AdminPage() {
                         options: [
                           { value: "languages", label: "Languages" },
                           { value: "frameworks", label: "Frameworks" },
-                          { value: "apis", label: "APIs" },
                           { value: "tools", label: "Tools" },
                         ],
                       },
@@ -994,7 +991,6 @@ export default function AdminPage() {
                             options: [
                               { value: "languages", label: "Languages" },
                               { value: "frameworks", label: "Frameworks" },
-                              { value: "apis", label: "APIs" },
                               { value: "tools", label: "Tools" },
                             ],
                           },
