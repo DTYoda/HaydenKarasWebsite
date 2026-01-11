@@ -12,11 +12,16 @@ export default function EditableHomeIntro() {
   const [name, setName] = useState("Hayden Karas");
   const [roles, setRoles] = useState(["Coder", "Developer", "Mathematician"]);
   const [resumeLink, setResumeLink] = useState("/resume.pdf");
-  const [linkedinLink, setLinkedinLink] = useState("https://www.linkedin.com/in/haydenkaras/");
+  const [linkedinLink, setLinkedinLink] = useState(
+    "https://www.linkedin.com/in/haydenkaras/"
+  );
   const [githubLink, setGithubLink] = useState("https://github.com/DTYoda");
-  const { openEditModal, EditModalComponent } = useEditable("pagecontent", () => {
-    fetchContent();
-  });
+  const { openEditModal, EditModalComponent } = useEditable(
+    "pagecontent",
+    () => {
+      fetchContent();
+    }
+  );
 
   useEffect(() => {
     fetchContent();
@@ -28,7 +33,7 @@ export default function EditableHomeIntro() {
       if (response.ok) {
         const data = await response.json();
         if (data.data && data.data.length > 0) {
-          data.data.forEach(item => {
+          data.data.forEach((item) => {
             if (item.key === "home-intro-text") setIntroText(item.content);
             else if (item.key === "home-intro-name") setName(item.content);
             else if (item.key === "home-intro-roles") {
@@ -37,10 +42,12 @@ export default function EditableHomeIntro() {
               } catch (e) {
                 setRoles(["Coder", "Developer", "Mathematician"]);
               }
-            }
-            else if (item.key === "home-intro-resume") setResumeLink(item.content);
-            else if (item.key === "home-intro-linkedin") setLinkedinLink(item.content);
-            else if (item.key === "home-intro-github") setGithubLink(item.content);
+            } else if (item.key === "home-intro-resume")
+              setResumeLink(item.content);
+            else if (item.key === "home-intro-linkedin")
+              setLinkedinLink(item.content);
+            else if (item.key === "home-intro-github")
+              setGithubLink(item.content);
           });
         }
       }
@@ -54,7 +61,12 @@ export default function EditableHomeIntro() {
   ];
 
   const rolesFields = [
-    { name: "content", label: "Roles (JSON array)", type: "textarea", required: true },
+    {
+      name: "content",
+      label: "Roles (JSON array)",
+      type: "textarea",
+      required: true,
+    },
   ];
 
   return (
@@ -63,10 +75,18 @@ export default function EditableHomeIntro() {
         <div className="mb-4 sm:mb-6 relative">
           {isAuthenticated && (
             <EditButton
-              onClick={() => openEditModal(
-                { key: "home-intro-text", page: "home", section: "intro", content: introText, type: "text" },
-                textFields
-              )}
+              onClick={() =>
+                openEditModal(
+                  {
+                    key: "home-intro-text",
+                    page: "home",
+                    section: "intro",
+                    content: introText,
+                    type: "text",
+                  },
+                  textFields
+                )
+              }
               className="absolute -top-2 -right-2 z-10 bg-blue-500 hover:bg-blue-600"
             />
           )}
@@ -77,10 +97,18 @@ export default function EditableHomeIntro() {
         <h1 className="font-bold text-4xl sm:text-6xl md:text-7xl lg:text-8xl mb-4 sm:mb-6 leading-tight relative">
           {isAuthenticated && (
             <EditButton
-              onClick={() => openEditModal(
-                { key: "home-intro-name", page: "home", section: "intro", content: name, type: "text" },
-                textFields
-              )}
+              onClick={() =>
+                openEditModal(
+                  {
+                    key: "home-intro-name",
+                    page: "home",
+                    section: "intro",
+                    content: name,
+                    type: "text",
+                  },
+                  textFields
+                )
+              }
               className="absolute -top-2 -right-2 z-10 bg-blue-500 hover:bg-blue-600"
             />
           )}
@@ -89,10 +117,18 @@ export default function EditableHomeIntro() {
         <div className="space-y-2 sm:space-y-4 mb-8 sm:mb-12 relative">
           {isAuthenticated && (
             <EditButton
-              onClick={() => openEditModal(
-                { key: "home-intro-roles", page: "home", section: "intro", content: JSON.stringify(roles), type: "json" },
-                rolesFields
-              )}
+              onClick={() =>
+                openEditModal(
+                  {
+                    key: "home-intro-roles",
+                    page: "home",
+                    section: "intro",
+                    content: JSON.stringify(roles),
+                    type: "json",
+                  },
+                  rolesFields
+                )
+              }
               className="absolute -top-2 -right-2 z-10 bg-blue-500 hover:bg-blue-600"
             />
           )}
@@ -114,24 +150,48 @@ export default function EditableHomeIntro() {
           {isAuthenticated && (
             <div className="absolute -top-2 -right-2 z-10 flex gap-2">
               <EditButton
-                onClick={() => openEditModal(
-                  { key: "home-intro-resume", page: "home", section: "intro", content: resumeLink, type: "text" },
-                  textFields
-                )}
+                onClick={() =>
+                  openEditModal(
+                    {
+                      key: "home-intro-resume",
+                      page: "home",
+                      section: "intro",
+                      content: resumeLink,
+                      type: "text",
+                    },
+                    textFields
+                  )
+                }
                 className="bg-blue-500 hover:bg-blue-600"
               />
               <EditButton
-                onClick={() => openEditModal(
-                  { key: "home-intro-linkedin", page: "home", section: "intro", content: linkedinLink, type: "text" },
-                  textFields
-                )}
+                onClick={() =>
+                  openEditModal(
+                    {
+                      key: "home-intro-linkedin",
+                      page: "home",
+                      section: "intro",
+                      content: linkedinLink,
+                      type: "text",
+                    },
+                    textFields
+                  )
+                }
                 className="bg-blue-500 hover:bg-blue-600"
               />
               <EditButton
-                onClick={() => openEditModal(
-                  { key: "home-intro-github", page: "home", section: "intro", content: githubLink, type: "text" },
-                  textFields
-                )}
+                onClick={() =>
+                  openEditModal(
+                    {
+                      key: "home-intro-github",
+                      page: "home",
+                      section: "intro",
+                      content: githubLink,
+                      type: "text",
+                    },
+                    textFields
+                  )
+                }
                 className="bg-blue-500 hover:bg-blue-600"
               />
             </div>
@@ -140,7 +200,7 @@ export default function EditableHomeIntro() {
             rel="noopener noreferrer"
             href={resumeLink}
             target="_blank"
-            className="px-4 sm:px-6 py-2 sm:py-3 bg-orange-500 hover:bg-orange-600 text-black font-semibold rounded-lg transition-all duration-300 hover-lift glow-orange-hover text-sm sm:text-base"
+            className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-orange-500 text-orange-500 hover:bg-orange-500/10 font-semibold rounded-lg transition-all duration-300 hover-lift text-sm sm:text-base"
           >
             View Resume
           </Link>
@@ -166,4 +226,3 @@ export default function EditableHomeIntro() {
     </>
   );
 }
-

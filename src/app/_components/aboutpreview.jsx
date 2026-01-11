@@ -31,11 +31,20 @@ export default function AboutPreview() {
             </div>
           </div>
           <p className="text-gray-300 leading-relaxed mb-4">
-            I'm <span className="text-orange-500 font-semibold">Hayden Karas</span>, a Computer Science major from Cranston, Rhode Island. Currently a freshman at{" "}
-            <span className="text-orange-500 font-semibold">Carnegie Mellon University's</span> School of Computer Science.
+            I'm{" "}
+            <span className="text-orange-500 font-semibold">Hayden Karas</span>,
+            a Computer Science major from Cranston, Rhode Island. Currently a
+            freshman at{" "}
+            <span className="text-orange-500 font-semibold">
+              Carnegie Mellon University's
+            </span>{" "}
+            School of Computer Science.
           </p>
           <p className="text-gray-300 leading-relaxed">
-            I've been coding since fifth grade and have always loved learning—from physics to technology to engineering. I value relationships more than anything and try to learn something new every single day.
+            I've been coding since fifth grade and have always loved
+            learning—from physics to technology to engineering. I value
+            relationships more than anything and try to learn something new
+            every single day.
           </p>
         </div>
 
@@ -48,37 +57,23 @@ export default function AboutPreview() {
             </div>
           </div>
           <p className="text-gray-300 leading-relaxed mb-4">
-            Started with <span className="text-orange-500 font-semibold">Scratch</span> and Minecraft mods, then progressed to game development with Unity. Won{" "}
-            <span className="text-orange-500 font-semibold">SkillsUSA</span> state championships two years in a row and placed{" "}
-            <span className="text-orange-500 font-semibold">top 10 nationally</span> twice.
+            Started with{" "}
+            <span className="text-orange-500 font-semibold">Scratch</span> and
+            Minecraft mods, then progressed to game development with Unity. Won{" "}
+            <span className="text-orange-500 font-semibold">SkillsUSA</span>{" "}
+            state championships two years in a row and placed{" "}
+            <span className="text-orange-500 font-semibold">
+              top 10 nationally
+            </span>{" "}
+            twice.
           </p>
           <p className="text-gray-300 leading-relaxed">
-            Also explored full-stack web development through college courses and <span className="text-orange-500 font-semibold">CS50x</span>, presenting projects at URI's Computer Science Summit.
+            Also explored full-stack web development through college courses and{" "}
+            <span className="text-orange-500 font-semibold">CS50x</span>,
+            presenting projects at URI's Computer Science Summit.
           </p>
-        </div>
-      </div>
-
-      <div className="mt-8 glass rounded-2xl p-6 border border-orange-500/20">
-        <div className="flex flex-wrap gap-6 justify-center">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-1">8+</div>
-            <div className="text-sm text-gray-400">Years Coding</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-1">CMU</div>
-            <div className="text-sm text-gray-400">University</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-1">Top 10</div>
-            <div className="text-sm text-gray-400">National</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-orange-500 mb-1">2x</div>
-            <div className="text-sm text-gray-400">State Champ</div>
-          </div>
         </div>
       </div>
     </section>
   );
 }
-
