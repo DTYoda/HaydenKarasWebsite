@@ -136,7 +136,7 @@ export default function PortfolioSectionClient() {
     <div className="min-h-screen flex flex-col items-center py-20 px-6">
       <div className="text-center mb-16 fade-in relative w-full max-w-7xl">
         {isAuthenticated && (
-          <div className="absolute top-0 right-0">
+          <div className="absolute top-0 right-0 sm:static sm:mb-4 sm:text-right">
             <AddButton
               onClick={createNewProject}
               label="Create New Project"
@@ -153,10 +153,10 @@ export default function PortfolioSectionClient() {
       </div>
       
       {/* Filter Section */}
-      <div className="mb-12 flex flex-wrap justify-center gap-4 w-full max-w-7xl">
+      <div className="mb-12 flex flex-wrap justify-center gap-2 sm:gap-4 w-full max-w-7xl px-4">
         <button
           onClick={() => setSelectedType("all")}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
+          className={`px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 ${
             selectedType === "all"
               ? "bg-orange-500 text-white shadow-lg shadow-orange-500/50"
               : "glass text-orange-500 hover:bg-orange-500/10 border border-orange-500/20"
@@ -171,7 +171,7 @@ export default function PortfolioSectionClient() {
               <button
                 key={type}
                 onClick={() => setSelectedType(type)}
-                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                className={`px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 ${
                   selectedType === type
                     ? "bg-orange-500 text-white shadow-lg shadow-orange-500/50"
                     : "glass text-orange-500 hover:bg-orange-500/10 border border-orange-500/20"

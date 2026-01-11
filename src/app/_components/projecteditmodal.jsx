@@ -404,9 +404,9 @@ export default function ProjectEditModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="glass rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-orange-500/50">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold gradient-text">Edit Project</h2>
+      <div className="glass rounded-2xl p-4 sm:p-6 md:p-8 max-w-4xl w-full mx-4 sm:mx-6 max-h-[90vh] overflow-y-auto border border-orange-500/50">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold gradient-text">Edit Project</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors"
@@ -431,7 +431,7 @@ export default function ProjectEditModal({
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-orange-500">
+            <h3 className="text-lg sm:text-xl font-semibold text-orange-500">
               Basic Information
             </h3>
 
@@ -530,7 +530,7 @@ export default function ProjectEditModal({
           {/* Descriptions */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-orange-500">
+              <h3 className="text-lg sm:text-xl font-semibold text-orange-500">
                 Descriptions
               </h3>
               <button
@@ -605,7 +605,7 @@ export default function ProjectEditModal({
           {/* Links */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-orange-500">Links</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-orange-500">Links</h3>
               <button
                 type="button"
                 onClick={addLink}
@@ -665,7 +665,7 @@ export default function ProjectEditModal({
           {/* Images */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-orange-500">Images</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-orange-500">Images</h3>
               <p className="text-sm text-gray-400">
                 First image is the display/thumbnail image
               </p>
@@ -748,7 +748,7 @@ export default function ProjectEditModal({
           {/* Technologies */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-orange-500">
+              <h3 className="text-lg sm:text-xl font-semibold text-orange-500">
                 Technologies
               </h3>
               <button
@@ -888,7 +888,7 @@ export default function ProjectEditModal({
           {/* Key Highlights */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-orange-500">
+              <h3 className="text-lg sm:text-xl font-semibold text-orange-500">
                 Key Highlights
               </h3>
               <button

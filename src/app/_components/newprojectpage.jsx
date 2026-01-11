@@ -536,7 +536,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
         {/* Hero Section */}
         <div className="w-full max-w-7xl mb-12 fade-in relative">
           {isAuthenticated && (
-            <div className="absolute top-0 right-0 flex gap-2 z-10">
+            <div className="absolute top-0 right-0 sm:static sm:mb-4 sm:flex sm:justify-end flex gap-2 z-10">
               <EditButton
                 onClick={() =>
                   setEditModal({ isOpen: true, section: "project" })
@@ -568,14 +568,14 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
               </div>
             </div>
             {links.length > 0 && (
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 {links.map((link, id) => (
                   <Link
                     key={id}
                     href={link.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="glass px-6 py-3 rounded-lg font-semibold text-orange-500 hover:bg-orange-500/10 hover:border-orange-500/50 border border-orange-500/20 transition-all duration-300 hover-lift"
+                    className="glass px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold text-orange-500 hover:bg-orange-500/10 hover:border-orange-500/50 border border-orange-500/20 transition-all duration-300 hover-lift"
                   >
                     {link.title}
                   </Link>
@@ -589,7 +589,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
         <div className="w-full max-w-7xl mb-12 fade-in relative">
           {isAuthenticated && (
             <div className="absolute top-4 right-4 z-10">
-              <label className="bg-green-500 hover:bg-green-600 text-white rounded-lg px-4 py-2 font-semibold transition-all duration-300 hover:scale-105 shadow-lg cursor-pointer">
+              <label className="bg-green-500 hover:bg-green-600 text-white rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold transition-all duration-300 hover:scale-105 shadow-lg cursor-pointer">
                 <input
                   type="file"
                   accept="image/*"
@@ -629,7 +629,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
                             images.length
                         )
                       }
-                      className="absolute left-4 top-1/2 -translate-y-1/2 glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-12 w-12 flex justify-center items-center text-orange-500 text-2xl font-bold transition-all duration-300 hover-lift hover:scale-110"
+                      className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-10 w-10 sm:h-12 sm:w-12 flex justify-center items-center text-orange-500 text-xl sm:text-2xl font-bold transition-all duration-300 hover-lift hover:scale-110"
                       aria-label="Previous image"
                     >
                       {"<"}
@@ -640,7 +640,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
                           (selectedImageIndex + 1) % images.length
                         )
                       }
-                      className="absolute right-4 top-1/2 -translate-y-1/2 glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-12 w-12 flex justify-center items-center text-orange-500 text-2xl font-bold transition-all duration-300 hover-lift hover:scale-110"
+                      className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-10 w-10 sm:h-12 sm:w-12 flex justify-center items-center text-orange-500 text-xl sm:text-2xl font-bold transition-all duration-300 hover-lift hover:scale-110"
                       aria-label="Next image"
                     >
                       {">"}
@@ -700,7 +700,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
                     <button
                       key={category}
                       onClick={() => setSelectedTechCategory(category)}
-                      className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 ${
+                      className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-300 ${
                         selectedTechCategory === category
                           ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
                           : "glass text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 border border-orange-500/20"
@@ -786,7 +786,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
                 onClick={() =>
                   setEditModal({ isOpen: true, section: "project" })
                 }
-                className="absolute top-0 right-0 z-10"
+                className="absolute top-0 right-0 sm:static sm:mb-4 sm:flex sm:justify-end z-10"
               />
             )}
             <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-orange-500">
