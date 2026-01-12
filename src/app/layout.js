@@ -13,6 +13,12 @@ export const metadata = {
   other: {
     colorScheme: "dark", // Adds <meta name=\"color-scheme\" content=\"dark\">
   },
+  // Performance optimizations
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  },
 };
 
 export default function RootLayout({ children }) {

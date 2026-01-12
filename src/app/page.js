@@ -14,20 +14,30 @@ export const metadata = {
 };
 
 export default async function Home() {
+  const supabase = createServerClient();
+  
+  // Fetch all data server-side
   let projects = [];
+  let quickStats = [];
+  let topSkills = [];
+  let homeIntro = {
+    introText: "Hi, my name is",
+    name: "Hayden Karas",
+    roles: ["Coder", "Developer", "Mathematician"],
+    resumeLink: "/resume.pdf",
+    linkedinLink: "https://www.linkedin.com/in/haydenkaras/",
+    githubLink: "https://github.com/DTYoda",
+  };
   
   try {
-    const supabase = createServerClient();
-    const { data, error } = await supabase
+    // Fetch projects
+    const { data: projectsData, error: projectsError } = await supabase
       .from('projects')
       .select('*')
       .order('date', { ascending: false });
     
-    if (error) {
-      console.error("Database error:", error);
-    } else if (data) {
-      // Convert snake_case to camelCase for compatibility
-      projects = data.map(p => ({
+    if (!projectsError && projectsData) {
+      projects = projectsData.map(p => ({
         id: p.id,
         urlTitle: p.url_title,
         title: p.title,
@@ -40,8 +50,64 @@ export default async function Home() {
       }));
     }
   } catch (error) {
-    console.error("Error initializing Supabase or fetching projects:", error);
-    // Continue rendering even if database fails
+    console.error("Error fetching projects:", error);
+  }
+
+  try {
+    // Fetch quick stats
+    const { data: statsData, error: statsError } = await supabase
+      .from('quick_stats')
+      .select('*')
+      .order('order', { ascending: true });
+    
+    if (!statsError && statsData) {
+      quickStats = statsData;
+    }
+  } catch (error) {
+    console.error("Error fetching quick stats:", error);
+  }
+
+  try {
+    // Fetch top skills - get from skills table and sort by proficiency
+    const { data: skillsData, error: skillsError } = await supabase
+      .from('skills')
+      .select('*');
+    
+    if (!skillsError && skillsData) {
+      // Sort by proficiency descending and take first 8
+      topSkills = skillsData
+        .sort((a, b) => (b.proficiency || 0) - (a.proficiency || 0))
+        .slice(0, 8);
+    }
+  } catch (error) {
+    console.error("Error fetching top skills:", error);
+  }
+
+  try {
+    // Fetch home intro content
+    const { data: introData, error: introError } = await supabase
+      .from('page_content')
+      .select('*')
+      .eq('page', 'home')
+      .eq('section', 'intro');
+    
+    if (!introError && introData) {
+      introData.forEach((item) => {
+        if (item.key === "home-intro-text") homeIntro.introText = item.content;
+        else if (item.key === "home-intro-name") homeIntro.name = item.content;
+        else if (item.key === "home-intro-roles") {
+          try {
+            homeIntro.roles = JSON.parse(item.content);
+          } catch (e) {
+            // Keep default
+          }
+        } else if (item.key === "home-intro-resume") homeIntro.resumeLink = item.content;
+        else if (item.key === "home-intro-linkedin") homeIntro.linkedinLink = item.content;
+        else if (item.key === "home-intro-github") homeIntro.githubLink = item.content;
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching home intro:", error);
   }
 
   return (
@@ -54,9 +120,9 @@ export default async function Home() {
             <div className="absolute top-20 right-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl hidden md:block"></div>
             <div className="absolute bottom-20 left-10 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl hidden md:block"></div>
 
-            <EditableHomeIntro />
-            <div style={{ animationDelay: "0.5s" }} className="fade-in">
-              <EditableQuickStats />
+            <EditableHomeIntro initialData={homeIntro} />
+            <div className="fade-in" style={{ animationDelay: "0.5s" }}>
+              <EditableQuickStats initialData={quickStats} />
             </div>
           </div>
         </div>
@@ -69,7 +135,7 @@ export default async function Home() {
           {projects.length > 0 && <EditableLatestProjects projects={projects} />}
 
           {/* Top Skills */}
-          <EditableTopSkills />
+          <EditableTopSkills initialData={topSkills} />
 
           {/* About Preview */}
           <AboutPreview />

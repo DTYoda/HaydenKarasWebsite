@@ -1,14 +1,28 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123"; // Change this in production!
+// Get admin password from environment - ensure it's available at runtime
+function getAdminPassword() {
+  // In production, this should be set as an environment variable
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) {
+    console.error("ADMIN_PASSWORD environment variable is not set!");
+    // Fallback for development only
+    if (process.env.NODE_ENV === "development") {
+      return "admin123";
+    }
+    throw new Error("Admin password not configured");
+  }
+  return password;
+}
 
 export async function POST(req) {
   try {
     const { password, action } = await req.json();
 
     if (action === "login") {
-      if (password === ADMIN_PASSWORD) {
+      const adminPassword = getAdminPassword();
+      if (password === adminPassword) {
         const cookieStore = await cookies();
         cookieStore.set("admin-auth", "authenticated", {
           httpOnly: true,

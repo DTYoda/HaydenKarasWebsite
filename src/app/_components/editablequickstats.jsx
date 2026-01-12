@@ -7,16 +7,21 @@ import EditButton from "./editbutton";
 import DeleteButton from "./deletebutton";
 import AddButton from "./addbutton";
 
-export default function EditableQuickStats() {
+export default function EditableQuickStats({ initialData }) {
   const { isAuthenticated } = useAuth();
-  const [stats, setStats] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(initialData || []);
+  const [loading, setLoading] = useState(!initialData);
   const { openEditModal, handleDelete, EditModalComponent } = useEditable("quickstat", () => {
     fetchStats();
   });
 
   useEffect(() => {
-    fetchStats();
+    // Only fetch if initialData wasn't provided
+    if (!initialData) {
+      fetchStats();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const fetchStats = async () => {

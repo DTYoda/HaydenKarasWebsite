@@ -7,11 +7,11 @@ import { useAuth } from "./authprovider";
 import { useEditable } from "./useeditable";
 import EditButton from "./editbutton";
 
-export default function EditableTopSkills() {
+export default function EditableTopSkills({ initialData }) {
   const { isAuthenticated } = useAuth();
-  const [topSkills, setTopSkills] = useState([]);
+  const [topSkills, setTopSkills] = useState(initialData || []);
   const [animatedWidths, setAnimatedWidths] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialData);
   const [skillCount, setSkillCount] = useState(8); // Default to 8 skills
   const { openEditModal, EditModalComponent } = useEditable(
     "pagecontent",
@@ -22,11 +22,16 @@ export default function EditableTopSkills() {
   );
 
   useEffect(() => {
-    const initialize = async () => {
-      await fetchSkillCount();
-      // fetchTopSkills will be called when skillCount is set
-    };
-    initialize();
+    // Only fetch if initialData wasn't provided
+    if (!initialData) {
+      const initialize = async () => {
+        await fetchSkillCount();
+        // fetchTopSkills will be called when skillCount is set
+      };
+      initialize();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -178,9 +183,9 @@ export default function EditableTopSkills() {
               return (
                 <div
                   key={skill.id || index}
-                  className="glass rounded-lg p-4 border border-orange-500/30 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all duration-300 relative"
+                  className="glass rounded-lg p-4 border border-orange-500/30 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all duration-300 relative animate-float-in"
                   style={{
-                    animation: `floatIn 0.6s ease-out ${index * 0.05}s both`,
+                    animationDelay: `${index * 0.05}s`,
                   }}
                 >
                   <div className="flex items-center gap-3 mb-3">

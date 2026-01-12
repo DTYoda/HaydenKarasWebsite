@@ -6,16 +6,24 @@ import { useAuth } from "./authprovider";
 import { useEditable } from "./useeditable";
 import EditButton from "./editbutton";
 
-export default function EditableHomeIntro() {
+export default function EditableHomeIntro({ initialData }) {
   const { isAuthenticated } = useAuth();
-  const [introText, setIntroText] = useState("Hi, my name is");
-  const [name, setName] = useState("Hayden Karas");
-  const [roles, setRoles] = useState(["Coder", "Developer", "Mathematician"]);
-  const [resumeLink, setResumeLink] = useState("/resume.pdf");
-  const [linkedinLink, setLinkedinLink] = useState(
-    "https://www.linkedin.com/in/haydenkaras/"
+  const [introText, setIntroText] = useState(
+    initialData?.introText || "Hi, my name is"
   );
-  const [githubLink, setGithubLink] = useState("https://github.com/DTYoda");
+  const [name, setName] = useState(initialData?.name || "Hayden Karas");
+  const [roles, setRoles] = useState(
+    initialData?.roles || ["Coder", "Developer", "Mathematician"]
+  );
+  const [resumeLink, setResumeLink] = useState(
+    initialData?.resumeLink || "/resume.pdf"
+  );
+  const [linkedinLink, setLinkedinLink] = useState(
+    initialData?.linkedinLink || "https://www.linkedin.com/in/haydenkaras/"
+  );
+  const [githubLink, setGithubLink] = useState(
+    initialData?.githubLink || "https://github.com/DTYoda"
+  );
   const { openEditModal, EditModalComponent } = useEditable(
     "pagecontent",
     () => {
@@ -24,7 +32,10 @@ export default function EditableHomeIntro() {
   );
 
   useEffect(() => {
-    fetchContent();
+    // Only fetch if initialData wasn't provided
+    if (!initialData) {
+      fetchContent();
+    }
   }, []);
 
   const fetchContent = async () => {
@@ -71,7 +82,10 @@ export default function EditableHomeIntro() {
 
   return (
     <>
-      <div className="relative z-10 fade-in py-8">
+      <div
+        className="relative z-10 fade-in py-8"
+        style={{ animationDelay: "0s" }}
+      >
         <div className="mb-4 sm:mb-6 relative">
           {isAuthenticated && (
             <EditButton
