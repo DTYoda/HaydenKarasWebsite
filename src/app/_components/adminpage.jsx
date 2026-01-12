@@ -283,7 +283,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="animated-gradient min-h-screen">
+    <div className="bg-[#0a0a0a] min-h-screen">
       <Navigation />
       <div className="w-full max-w-7xl mx-auto px-6 py-20">
         {/* Migration Tool */}

@@ -101,10 +101,6 @@ export default function EditableStartQuote({
             />
           </div>
         )}
-        {/* Background decorative elements */}
-        <div className="absolute top-20 right-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl"></div>
-
         <div className="relative z-10 fade-in py-8">
           <div className="mb-6 sm:mb-8 relative">
             {isAuthenticated && (

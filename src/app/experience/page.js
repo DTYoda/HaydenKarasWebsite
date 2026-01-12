@@ -10,8 +10,8 @@ export const metadata = {
 
 export default function Experience() {
   return (
-    <div className="animated-gradient">
-      <div className="flex flex-col items-center min-h-screen">
+    <div className="bg-[#0a0a0a] relative">
+      <div className="flex flex-col items-center min-h-screen" style={{ zIndex: 10 }}>
         <div className="flex flex-col min-h-screen w-screen relative overflow-hidden">
           <Navigation />
           <div className="w-screen flex justify-center grow pt-16">

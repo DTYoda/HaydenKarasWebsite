@@ -198,6 +198,32 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
     return "⚙️";
   };
 
+  // Get category label
+  const getCategoryLabel = (category) => {
+    const labels = {
+      frontend: "Frontend",
+      backend: "Backend",
+      "game-dev": "Game Development",
+      tools: "Tools & DevOps",
+      "programming-language": "Programming Language",
+      other: "Other",
+    };
+    return labels[category] || "Other";
+  };
+
+  // Get category icon
+  const getCategoryIcon = (category) => {
+    const icons = {
+      frontend: "🎨",
+      backend: "⚙️",
+      "game-dev": "🎮",
+      tools: "🛠️",
+      "programming-language": "💻",
+      other: "📦",
+    };
+    return icons[category] || "📦";
+  };
+
   // Parse project data
   const rawImages = projectData ? JSON.parse(projectData.images || "[]") : [];
 
@@ -236,7 +262,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
         category: category,
         proficiency: tech.proficiency || getDefaultProficiency(tech.title),
         color: tech.color || getTechColor(category),
-        icon: tech.icon || getTechIcon(tech.title),
+        icon: tech.icon || getCategoryIcon(category),
       };
     });
   }, [rawTechnologies]);
@@ -326,32 +352,6 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
     } catch {
       return dateStr;
     }
-  };
-
-  // Get category label
-  const getCategoryLabel = (category) => {
-    const labels = {
-      frontend: "Frontend",
-      backend: "Backend",
-      "game-dev": "Game Development",
-      tools: "Tools & DevOps",
-      "programming-language": "Programming Language",
-      other: "Other",
-    };
-    return labels[category] || "Other";
-  };
-
-  // Get category icon
-  const getCategoryIcon = (category) => {
-    const icons = {
-      frontend: "🎨",
-      backend: "⚙️",
-      "game-dev": "🎮",
-      tools: "🛠️",
-      "programming-language": "💻",
-      other: "📦",
-    };
-    return icons[category] || "📦";
   };
 
   // Filter technologies by category
@@ -530,7 +530,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
   }
 
   return (
-    <div className="animated-gradient min-h-screen">
+    <div className="bg-[#0a0a0a] min-h-screen">
       <Navigation />
       <div className="w-full flex flex-col items-center pt-24 pb-20 px-4 sm:px-6">
         {/* Hero Section */}
@@ -729,9 +729,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
                     <div className="glass rounded-xl p-5 border border-orange-500/20 hover:border-orange-500/50 transition-all duration-300 hover-lift h-full">
                       {/* Tech Header */}
                       <div className="flex items-center gap-3 mb-4">
-                        <div
-                          className={`text-3xl bg-gradient-to-br ${tech.color} bg-clip-text text-transparent flex-shrink-0`}
-                        >
+                        <div className="text-3xl flex-shrink-0">
                           {tech.icon}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -756,9 +754,12 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
                           <div
                             className="h-full rounded-full transition-all duration-1000 ease-out"
                             style={{
-                              width: `${
-                                animatedProficiencies[tech.title] || 0
-                              }%`,
+                              width: `${Math.min(
+                                animatedProficiencies[tech.title] ||
+                                  tech.proficiency ||
+                                  0,
+                                100
+                              )}%`,
                               background: getGradientColors(tech.color),
                             }}
                           ></div>

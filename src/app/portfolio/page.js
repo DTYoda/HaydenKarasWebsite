@@ -10,8 +10,11 @@ export const metadata = {
 
 export default function Portfolio() {
   return (
-    <div className="animated-gradient">
-      <div className="flex flex-col min-h-screen w-screen relative overflow-hidden">
+    <div className="bg-[#0a0a0a] relative">
+      <div
+        className="flex flex-col min-h-screen w-screen relative overflow-hidden"
+        style={{ zIndex: 10 }}
+      >
         <Navigation />
         <div className="w-screen flex justify-center grow pt-16">
           <StartQuote

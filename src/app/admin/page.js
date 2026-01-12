@@ -38,9 +38,10 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="animated-gradient min-h-screen">
-      <Navigation />
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-6">
+    <div className="bg-[#0a0a0a] min-h-screen relative">
+      <div style={{ zIndex: 10, position: 'relative' }}>
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-6">
         <div className="glass rounded-2xl p-8 max-w-md w-full border border-orange-500/50">
           <div className="mb-6">
             <h2 className="text-3xl font-bold gradient-text mb-2">
@@ -84,6 +85,7 @@ export default function AdminLogin() {
             </div>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );

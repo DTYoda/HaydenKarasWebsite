@@ -283,7 +283,7 @@ export default function EditableProjectPage({
   }
 
   return (
-    <div className="animated-gradient min-h-screen">
+    <div className="bg-[#0a0a0a] min-h-screen">
       <Navigation />
       <div className="w-full flex flex-col items-center pt-24 pb-20 px-6">
         {/* Project Header */}
