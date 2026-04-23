@@ -1,5 +1,6 @@
-import { createServerClient } from '@/lib/supabase';
+import { createServerClient, createServiceRoleClient } from '@/lib/supabase';
 import { NextResponse } from "next/server";
+import { isAdminAuthenticated } from "@/lib/admin-auth";
 
 export async function POST(req) {
   try {
@@ -10,7 +11,14 @@ export async function POST(req) {
   }
 
   try {
-    const supabase = createServerClient();
+    const isAdmin = await isAdminAuthenticated();
+    if (!isAdmin) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized: Admin authentication required" },
+        { status: 401 }
+      );
+    }
+    const supabase = createServiceRoleClient();
 
     if (body.type == "new") {
       const { data, error } = await supabase

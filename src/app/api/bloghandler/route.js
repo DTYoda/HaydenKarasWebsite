@@ -1,16 +1,6 @@
 import { createServerClient, createServiceRoleClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-
-async function checkAdminAuth() {
-  try {
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get("admin-auth");
-    return authCookie?.value === "authenticated";
-  } catch (error) {
-    return false;
-  }
-}
+import { isAdminAuthenticated } from "@/lib/admin-auth";
 
 function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
@@ -91,7 +81,7 @@ export async function GET(req) {
     const includeDrafts = searchParams.get("includeDrafts") === "true";
     const limit = Number(searchParams.get("limit") || 100);
     const safeLimit = Number.isNaN(limit) ? 100 : Math.min(Math.max(limit, 1), 200);
-    const isAdmin = await checkAdminAuth();
+    const isAdmin = await isAdminAuthenticated();
 
     const supabase = createServerClient();
     const baseSelect = "id,title,slug,excerpt,content_json,content_html,cover_image_url,tags,status,published_at,created_at,updated_at,views_count,likes_count";
@@ -147,7 +137,7 @@ export async function POST(req) {
     return NextResponse.json({ success: false, message: "Invalid JSON payload" }, { status: 400 });
   }
 
-  const isAdmin = await checkAdminAuth();
+  const isAdmin = await isAdminAuthenticated();
   if (!isAdmin) {
     return NextResponse.json(
       { success: false, message: "Unauthorized: Admin authentication required" },

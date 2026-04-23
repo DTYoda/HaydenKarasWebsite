@@ -1,24 +1,13 @@
 import { createServerClient, createServiceRoleClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import fs from "fs";
 import path from "path";
-
-// Helper to check admin authentication
-async function checkAdminAuth() {
-  try {
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get("admin-auth");
-    return authCookie?.value === "authenticated";
-  } catch (error) {
-    return false;
-  }
-}
+import { isAdminAuthenticated } from "@/lib/admin-auth";
 
 export async function POST(req) {
   try {
     // Check admin authentication
-    const isAdmin = await checkAdminAuth();
+    const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) {
       return NextResponse.json(
         {
@@ -191,7 +180,7 @@ export async function POST(req) {
 export async function GET(req) {
   try {
     // Check admin authentication
-    const isAdmin = await checkAdminAuth();
+    const isAdmin = await isAdminAuthenticated();
     if (!isAdmin) {
       return NextResponse.json(
         {

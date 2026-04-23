@@ -20,8 +20,12 @@ export function createServiceRoleClient() {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.error('Missing Supabase service role key. Falling back to anon key.');
-    return createServerClient();
+    const message = 'Missing SUPABASE_SERVICE_ROLE_KEY for privileged operations.';
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`${message} Falling back to anon key in development.`);
+      return createServerClient();
+    }
+    throw new Error(message);
   }
 
   return createClient(supabaseUrl, supabaseServiceKey, {
