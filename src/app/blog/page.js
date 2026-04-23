@@ -50,11 +50,14 @@ export default async function BlogPage() {
         <div className="bg-gradient-to-b from-transparent to-[#0a0a0a] w-full">
           <a id="blog-posts"></a>
           <div className="pt-8 pb-16 px-6 max-w-7xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-4xl sm:text-5xl font-bold gradient-text mb-3">Blog</h1>
-              <p className="text-gray-300 max-w-3xl">
+            <div className="mb-10 text-center">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-4 uppercase tracking-wider">
+                <span className="gradient-text">Blog</span>
+              </h1>
+              <p className="text-gray-300 max-w-3xl mx-auto">
                 A place where I share ideas, technical write-ups, and project updates.
               </p>
+              <div className="w-24 h-1 bg-orange-500 mx-auto mt-6"></div>
             </div>
             <BlogList posts={posts} />
           </div>
