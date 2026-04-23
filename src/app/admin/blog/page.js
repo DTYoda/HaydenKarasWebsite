@@ -51,7 +51,7 @@ export default function AdminBlogPage() {
   }
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen relative">
+    <div className="bg-[#0a0a0a] min-h-screen">
       <Navigation />
       <div className="pt-24 pb-16 px-6 max-w-7xl mx-auto space-y-6">
         <div className="glass rounded-2xl p-6 border border-orange-500/20">

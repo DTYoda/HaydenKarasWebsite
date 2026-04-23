@@ -127,7 +127,7 @@ export default function BlogPostForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 border border-orange-500/20 space-y-5">
+    <form onSubmit={handleSubmit} className="rounded-2xl p-6 border border-orange-500/20 bg-[#0b0b0b]/95 space-y-5">
       <h2 className="text-2xl font-bold gradient-text">
         {post?.id ? "Edit Post" : "Create New Post"}
       </h2>
@@ -230,7 +230,7 @@ export default function BlogPostForm({
         )}
       </div>
 
-      <div className="glass rounded-2xl border border-orange-500/20 p-5 sm:p-6">
+      <div className="rounded-2xl border border-orange-500/20 bg-[#0d0d0d]/95 p-5 sm:p-6">
         <label className="block text-sm font-semibold text-gray-300 mb-4">Post Content (WYSIWYG)</label>
         <div className="mb-6">
           <p className="text-sm text-gray-400 mb-2">{previewDate}</p>

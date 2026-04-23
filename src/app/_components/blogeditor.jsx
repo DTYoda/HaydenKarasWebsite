@@ -56,13 +56,10 @@ export default function BlogEditor({ value, onChange }) {
     },
     editorProps: {
       attributes: {
-        class: `w-full rounded-lg border border-orange-500/30 bg-[#0f0f0f] p-4 text-gray-100 focus:outline-none min-h-[360px] ${BLOG_CONTENT_CLASS}`,
+        class: `blog-editor-content w-full rounded-lg border border-orange-500/30 bg-[#0f0f0f] p-4 text-gray-100 focus:outline-none min-h-[360px] ${BLOG_CONTENT_CLASS}`,
         spellcheck: "true",
         autocorrect: "on",
         autocapitalize: "sentences",
-        "data-gramm": "false",
-        "data-gramm_editor": "false",
-        "data-enable-grammarly": "false",
       },
     },
   });
@@ -134,7 +131,7 @@ export default function BlogEditor({ value, onChange }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="blog-editor space-y-3">
       <div className="overflow-x-auto pb-1">
         <div className="flex flex-nowrap sm:flex-wrap gap-2 min-w-max sm:min-w-0">
         <ToolbarButton
