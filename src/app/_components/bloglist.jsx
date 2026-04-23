@@ -1,5 +1,26 @@
 import Link from "next/link";
 
+function EyeIcon({ className = "w-3.5 h-3.5" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M2 12C3.8 7.8 7.5 5 12 5C16.5 5 20.2 7.8 22 12C20.2 16.2 16.5 19 12 19C7.5 19 3.8 16.2 2 12Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+function HeartIcon({ className = "w-3.5 h-3.5" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M12 21C11.7 21 11.3 20.9 11.1 20.7C8.4 18.7 2 14.1 2 8.9C2 6 4.3 3.8 7.1 3.8C9 3.8 10.8 4.8 12 6.3C13.2 4.8 15 3.8 16.9 3.8C19.7 3.8 22 6 22 8.9C22 14.1 15.6 18.7 12.9 20.7C12.7 20.9 12.3 21 12 21Z" />
+    </svg>
+  );
+}
+
 function formatDate(value) {
   if (!value) {
     return "Draft";
@@ -61,6 +82,16 @@ export default function BlogList({ posts }) {
               ))}
             </div>
           )}
+          <div className="flex items-center gap-2 text-xs mt-1">
+            <span className="inline-flex items-center gap-1 rounded-full border border-orange-500/25 bg-orange-500/10 px-2.5 py-1 text-orange-200">
+              <EyeIcon />
+              {(post.views_count || 0).toLocaleString()}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-pink-500/25 bg-pink-500/10 px-2.5 py-1 text-pink-200">
+              <HeartIcon />
+              {(post.likes_count || 0).toLocaleString()}
+            </span>
+          </div>
         </Link>
       ))}
     </div>

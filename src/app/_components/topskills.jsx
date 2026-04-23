@@ -27,12 +27,15 @@ export default function TopSkills() {
   useEffect(() => {
     if (!loading) {
       const timers = topSkills.map((skill, index) => {
-        return setTimeout(() => {
-          setAnimatedWidths((prev) => ({
-            ...prev,
-            [skill.name]: skill.proficiency,
-          }));
-        }, index * 50 + 100);
+        return setTimeout(
+          () => {
+            setAnimatedWidths((prev) => ({
+              ...prev,
+              [skill.name]: skill.proficiency,
+            }));
+          },
+          index * 50 + 100,
+        );
       });
 
       return () => timers.forEach((timer) => clearTimeout(timer));
@@ -121,9 +124,6 @@ export default function TopSkills() {
                     <h3 className="font-bold text-lg text-gray-200">
                       {skill.name}
                     </h3>
-                    <span className="text-lg font-bold gradient-text">
-                      {skill.proficiency}%
-                    </span>
                   </div>
                 </div>
               </div>

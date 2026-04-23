@@ -120,3 +120,23 @@ CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_status ON blog_posts(status);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_published_at ON blog_posts(published_at DESC);
 
+-- Blog engagement counters
+ALTER TABLE blog_posts
+  ADD COLUMN IF NOT EXISTS views_count INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS likes_count INTEGER NOT NULL DEFAULT 0;
+
+-- Per-user (anonymous fingerprinted) engagement events for dedupe
+CREATE TABLE IF NOT EXISTS blog_post_engagement_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id UUID NOT NULL REFERENCES blog_posts(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL CHECK (event_type IN ('view', 'like')),
+  fingerprint TEXT NOT NULL,
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (post_id, event_type, fingerprint)
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_engagement_post_id ON blog_post_engagement_events(post_id);
+CREATE INDEX IF NOT EXISTS idx_blog_engagement_event_type ON blog_post_engagement_events(event_type);
+

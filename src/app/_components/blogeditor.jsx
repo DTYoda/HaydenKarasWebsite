@@ -56,7 +56,13 @@ export default function BlogEditor({ value, onChange }) {
     },
     editorProps: {
       attributes: {
-        class: `w-full rounded-lg border border-orange-500/30 bg-[#0f0f0f] p-4 text-gray-100 focus:outline-none min-h-[360px] max-h-[70vh] overflow-y-auto ${BLOG_CONTENT_CLASS}`,
+        class: `w-full rounded-lg border border-orange-500/30 bg-[#0f0f0f] p-4 text-gray-100 focus:outline-none min-h-[360px] ${BLOG_CONTENT_CLASS}`,
+        spellcheck: "true",
+        autocorrect: "on",
+        autocapitalize: "sentences",
+        "data-gramm": "false",
+        "data-gramm_editor": "false",
+        "data-enable-grammarly": "false",
       },
     },
   });

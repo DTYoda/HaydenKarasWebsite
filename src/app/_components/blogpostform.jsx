@@ -139,6 +139,7 @@ export default function BlogPostForm({
             type="text"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
+            spellCheck
             className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
             placeholder="Post title"
             required
@@ -153,6 +154,7 @@ export default function BlogPostForm({
               setManualSlug(true);
               setSlug(slugify(event.target.value));
             }}
+            spellCheck={false}
             className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
             placeholder="my-post-slug"
             required
@@ -166,6 +168,7 @@ export default function BlogPostForm({
           value={excerpt}
           onChange={(event) => setExcerpt(event.target.value)}
           rows={3}
+          spellCheck
           className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
           placeholder="Short summary shown in blog list."
         />
@@ -178,6 +181,7 @@ export default function BlogPostForm({
             type="text"
             value={tags}
             onChange={(event) => setTags(event.target.value)}
+            spellCheck={false}
             className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
             placeholder="javascript, nextjs, supabase"
           />

@@ -1,4 +1,5 @@
 import { BLOG_CONTENT_CLASS } from "./blogcontentstyles";
+import BlogEngagement from "./blogengagement";
 
 function formatDate(value) {
   if (!value) {
@@ -39,6 +40,11 @@ export default function BlogPostView({ post }) {
             ))}
           </div>
         )}
+        <BlogEngagement
+          slug={post.slug}
+          initialViews={post.views_count || 0}
+          initialLikes={post.likes_count || 0}
+        />
       </header>
 
       {post.cover_image_url && (

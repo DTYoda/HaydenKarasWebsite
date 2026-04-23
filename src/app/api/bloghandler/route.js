@@ -94,7 +94,7 @@ export async function GET(req) {
     const isAdmin = await checkAdminAuth();
 
     const supabase = createServerClient();
-    const baseSelect = "id,title,slug,excerpt,content_json,content_html,cover_image_url,tags,status,published_at,created_at,updated_at";
+    const baseSelect = "id,title,slug,excerpt,content_json,content_html,cover_image_url,tags,status,published_at,created_at,updated_at,views_count,likes_count";
 
     if (slug) {
       let query = supabase.from("blog_posts").select(baseSelect).eq("slug", slug).limit(1);

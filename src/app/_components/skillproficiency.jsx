@@ -9,20 +9,15 @@ export default function SkillProficiency({ skill, index, category }) {
 
   // Use proficiency from database if available, otherwise default to 80
   const proficiency = skill.proficiency || 80;
-  const proficiencyLabel =
-    proficiency >= 90
-      ? "Expert"
-      : proficiency >= 75
-      ? "Advanced"
-      : proficiency >= 60
-      ? "Intermediate"
-      : "Beginner";
 
   useEffect(() => {
     // Animate the progress bar on mount - more subtle animation
-    const timer = setTimeout(() => {
-      setAnimatedWidth(proficiency);
-    }, index * 30 + 100);
+    const timer = setTimeout(
+      () => {
+        setAnimatedWidth(proficiency);
+      },
+      index * 30 + 100,
+    );
     return () => clearTimeout(timer);
   }, [proficiency, index]);
 
@@ -50,13 +45,7 @@ export default function SkillProficiency({ skill, index, category }) {
               <h3 className="font-bold text-base text-gray-200 truncate">
                 {skill.name}
               </h3>
-              <div className="text-lg font-bold gradient-text flex-shrink-0">
-                {proficiency}%
-              </div>
             </div>
-            <p className="text-xs text-orange-400/80 mt-0.5">
-              {proficiencyLabel}
-            </p>
           </div>
         </div>
 

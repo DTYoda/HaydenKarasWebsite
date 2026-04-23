@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useAuth } from "./authprovider";
 import { useEditable } from "./useeditable";
 import EditButton from "./editbutton";
@@ -95,17 +94,6 @@ export default function EditableTopSkills({ initialData }) {
     }
   };
 
-  const getTechImage = (name) => {
-    const nameMap = {
-      "C#": "CSharp",
-      "Next.js": "nextjs",
-      "Node.js": "NodeJS",
-      "Tailwind CSS": "tailwind",
-    };
-    const imageName = nameMap[name] || name.replace(/[^a-zA-Z0-9]/g, "");
-    return `/technologyimages/${imageName}.png`;
-  };
-
   const handleEditCount = () => {
     const countFields = [
       {
@@ -172,13 +160,6 @@ export default function EditableTopSkills({ initialData }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {topSkills.map((skill, index) => {
               const width = animatedWidths[skill.name] || 0;
-              const hasTechImage = [
-                "C#",
-                "Next.js",
-                "Node.js",
-                "Tailwind CSS",
-                "Unity",
-              ].includes(skill.name);
 
               return (
                 <div
@@ -189,25 +170,11 @@ export default function EditableTopSkills({ initialData }) {
                   }}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    {hasTechImage && (
-                      <div className="w-10 h-10 flex-shrink-0 relative">
-                        <Image
-                          src={getTechImage(skill.name)}
-                          width={40}
-                          height={40}
-                          alt={skill.name}
-                          className="object-contain"
-                        />
-                      </div>
-                    )}
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <h3 className="font-bold text-lg text-gray-200">
                           {skill.name}
                         </h3>
-                        <span className="text-lg font-bold gradient-text">
-                          {skill.proficiency || 0}%
-                        </span>
                       </div>
                     </div>
                   </div>
