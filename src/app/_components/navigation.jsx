@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useAuth } from "./authprovider";
 
 export default function Navigation() {
   const active = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const navItems = [
     { href: "/", label: "Home" },
+    { href: "/blog", label: "Blog" },
     { href: "/portfolio", label: "Work" },
     { href: "/experience", label: "Experience" },
     { href: "/about", label: "About" },
@@ -64,6 +67,28 @@ export default function Navigation() {
                 </Link>
               );
             })}
+            {isAuthenticated && (
+              <Link
+                className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 group ${
+                  active === "/admin/blog"
+                    ? "text-orange-500 bg-orange-500/10"
+                    : "text-gray-300 hover:text-orange-500 hover:bg-orange-500/5"
+                }`}
+                href="/admin/blog"
+              >
+                <span className="relative z-10">Admin Blog</span>
+                {active === "/admin/blog" && (
+                  <span className="absolute inset-0 bg-orange-500/20 rounded-lg blur-sm"></span>
+                )}
+                <span
+                  className={`absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500 transition-all duration-300 ${
+                    active === "/admin/blog"
+                      ? "scale-x-100"
+                      : "scale-x-0 group-hover:scale-x-100"
+                  }`}
+                ></span>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -114,6 +139,19 @@ export default function Navigation() {
                 </Link>
               );
             })}
+            {isAuthenticated && (
+              <Link
+                className={`block px-4 py-3 rounded-lg text-base font-medium transition-all duration-300 ${
+                  active === "/admin/blog"
+                    ? "text-orange-500 bg-orange-500/10 border-l-4 border-orange-500"
+                    : "text-gray-300 hover:text-orange-500 hover:bg-orange-500/5"
+                }`}
+                href="/admin/blog"
+                onClick={closeMobileMenu}
+              >
+                Admin Blog
+              </Link>
+            )}
           </div>
         </div>
       </div>
