@@ -41,6 +41,16 @@ export function useEditable(type, onSaveCallback) {
             payload.id = editModal.data.id;
           }
           break;
+        case "educationtimeline":
+          endpoint = "/api/educationtimelinehandler";
+          payload.type = editModal.data ? "edit" : "new";
+          if (payload.type === "edit") payload.id = editModal.data.id;
+          break;
+        case "workresearch":
+          endpoint = "/api/workresearchhandler";
+          payload.type = editModal.data ? "edit" : "new";
+          if (payload.type === "edit") payload.id = editModal.data.id;
+          break;
         case "topskill":
           endpoint = "/api/topskills";
           payload.type = editModal.data ? "edit" : "new";
@@ -111,6 +121,14 @@ export function useEditable(type, onSaveCallback) {
         case "education":
           endpoint = "/api/educationhandler";
           payload.name = name;
+          break;
+        case "educationtimeline":
+          endpoint = "/api/educationtimelinehandler";
+          payload.id = id;
+          break;
+        case "workresearch":
+          endpoint = "/api/workresearchhandler";
+          payload.id = id;
           break;
         case "topskill":
           endpoint = "/api/topskills";

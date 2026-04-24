@@ -6,6 +6,7 @@ import AboutPreview from "./_components/aboutpreview";
 import ContactPreview from "./_components/contactpreview";
 import EditableHomeIntro from "./_components/editablehomeintro";
 import { createServerClient } from "@/lib/supabase";
+import { getTagMeta } from "@/lib/tags";
 
 export const metadata = {
   title: "Hayden Karas",
@@ -20,6 +21,18 @@ export default async function Home() {
   let projects = [];
   let quickStats = [];
   let topSkills = [];
+  let topSkillsCount = 8;
+  let topSkillsAllowedCategories = [
+    "programming-language",
+    "frontend",
+    "backend",
+    "game-dev",
+    "tools",
+    "soft-skills",
+    "mathematics",
+    "computer-science",
+    "other",
+  ];
   let homeIntro = {
     introText: "Hi, my name is",
     name: "Hayden Karas",
@@ -68,16 +81,58 @@ export default async function Home() {
   }
 
   try {
-    // Fetch top skills - get from skills table and sort by proficiency
+    const { data: topSkillsSettingsData, error: topSkillsSettingsError } = await supabase
+      .from("page_content")
+      .select("*")
+      .eq("page", "home")
+      .eq("section", "top-skills");
+
+    if (!topSkillsSettingsError && topSkillsSettingsData) {
+      const countSetting = topSkillsSettingsData.find((item) => item.key === "top-skills-count");
+      const categoriesSetting = topSkillsSettingsData.find(
+        (item) => item.key === "top-skills-categories"
+      );
+
+      if (countSetting?.content) {
+        topSkillsCount = parseInt(countSetting.content) || 8;
+      }
+
+      if (categoriesSetting?.content) {
+        try {
+          const parsed = JSON.parse(categoriesSetting.content);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            topSkillsAllowedCategories = parsed
+              .map((value) => String(value || "").trim())
+              .filter(Boolean);
+          }
+        } catch {
+          // Keep defaults
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching top skills settings:", error);
+  }
+
+  try {
+    // Fetch top skills and prioritize years of experience for ranking.
     const { data: skillsData, error: skillsError } = await supabase
       .from("skills")
       .select("*");
 
     if (!skillsError && skillsData) {
-      // Sort by proficiency descending and take first 8
+      // Sort by years descending and take first 8 for quick recruiter scan.
       topSkills = skillsData
-        .sort((a, b) => (b.proficiency || 0) - (a.proficiency || 0))
-        .slice(0, 8);
+        .sort((a, b) => {
+          const yearsDiff = (b.years_experience || 0) - (a.years_experience || 0);
+          if (yearsDiff !== 0) return yearsDiff;
+          return String(a.name || "").localeCompare(String(b.name || ""));
+        })
+        .filter((skill) => {
+          const meta = getTagMeta(skill.name, skill.category);
+          return topSkillsAllowedCategories.includes(meta.category || "other");
+        })
+        .slice(0, topSkillsCount);
     }
   } catch (error) {
     console.error("Error fetching top skills:", error);

@@ -20,7 +20,8 @@ export default function Experience() {
               author="Confucius"
               links={[
                 ["#skills", "Skills"],
-                ["#education", "Education"],
+                ["#master-timeline", "Master Timeline"],
+                ["#certificates-awards", "Certificates and Awards"],
                 ["https://leetcode.com/u/DTYoda/", "LeetCode"],
               ]}
               page="experience"

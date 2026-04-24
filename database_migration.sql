@@ -140,6 +140,68 @@ CREATE TABLE IF NOT EXISTS blog_post_engagement_events (
 CREATE INDEX IF NOT EXISTS idx_blog_engagement_post_id ON blog_post_engagement_events(post_id);
 CREATE INDEX IF NOT EXISTS idx_blog_engagement_event_type ON blog_post_engagement_events(event_type);
 
+-- Work and research experience timeline table
+CREATE TABLE IF NOT EXISTS work_research_experience (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  organization TEXT NOT NULL DEFAULT '',
+  type TEXT NOT NULL DEFAULT 'work' CHECK (type IN ('work', 'research')),
+  start_date DATE,
+  end_date DATE,
+  is_current BOOLEAN NOT NULL DEFAULT FALSE,
+  summary TEXT NOT NULL DEFAULT '',
+  highlights JSONB NOT NULL DEFAULT '[]'::jsonb,
+  tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+  link TEXT NOT NULL DEFAULT '',
+  link_text TEXT NOT NULL DEFAULT '',
+  display_order INTEGER NOT NULL DEFAULT 100,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_work_research_type ON work_research_experience(type);
+CREATE INDEX IF NOT EXISTS idx_work_research_display_order ON work_research_experience(display_order);
+CREATE INDEX IF NOT EXISTS idx_work_research_start_date ON work_research_experience(start_date DESC);
+
+-- Education timeline courses table (detailed per-course entries)
+CREATE TABLE IF NOT EXISTS education_timeline_courses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  term_label TEXT NOT NULL,
+  term_start DATE,
+  term_end DATE,
+  course_name TEXT NOT NULL,
+  subtitle TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  topics JSONB NOT NULL DEFAULT '[]'::jsonb,
+  outcomes JSONB NOT NULL DEFAULT '[]'::jsonb,
+  tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+  more_info_link TEXT NOT NULL DEFAULT '',
+  more_info_link_text TEXT NOT NULL DEFAULT '',
+  display_order INTEGER NOT NULL DEFAULT 100,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_education_timeline_term_label ON education_timeline_courses(term_label);
+CREATE INDEX IF NOT EXISTS idx_education_timeline_display_order ON education_timeline_courses(display_order);
+CREATE INDEX IF NOT EXISTS idx_education_timeline_term_start ON education_timeline_courses(term_start DESC);
+
+-- Skill metadata for compact skill tags
+ALTER TABLE IF EXISTS skills
+  ADD COLUMN IF NOT EXISTS years_experience INTEGER,
+  ADD COLUMN IF NOT EXISTS top_project_label TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS top_project_link TEXT NOT NULL DEFAULT '';
+
+-- One-line mastered concept/project summary for timeline entries
+ALTER TABLE IF EXISTS education_timeline_courses
+  ADD COLUMN IF NOT EXISTS mastered_summary TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE IF EXISTS work_research_experience
+  ADD COLUMN IF NOT EXISTS tags JSONB NOT NULL DEFAULT '[]'::jsonb;
+
+ALTER TABLE IF EXISTS education_timeline_courses
+  ADD COLUMN IF NOT EXISTS tags JSONB NOT NULL DEFAULT '[]'::jsonb;
+
 -- =========================
 -- Security hardening (RLS)
 -- =========================
@@ -188,6 +250,8 @@ BEGIN
     'quick_stats',
     'skills',
     'education',
+    'education_timeline_courses',
+    'work_research_experience',
     'page_content',
     'static_content',
     'top_skills'
@@ -221,6 +285,8 @@ BEGIN
     'quick_stats',
     'skills',
     'education',
+    'education_timeline_courses',
+    'work_research_experience',
     'page_content',
     'static_content',
     'top_skills'
@@ -263,6 +329,8 @@ BEGIN
     'quick_stats',
     'skills',
     'education',
+    'education_timeline_courses',
+    'work_research_experience',
     'page_content',
     'static_content',
     'top_skills',

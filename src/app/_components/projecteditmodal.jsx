@@ -8,6 +8,11 @@ export default function ProjectEditModal({
   onSave,
   projectData,
 }) {
+  const normalizeTagKey = (value) => String(value || "").trim().toLowerCase();
+  const isCoreCategory = (category) =>
+    ["soft-skills", "mathematics", "computer-science"].includes(
+      String(category || "").trim().toLowerCase()
+    );
   const [formData, setFormData] = useState({
     urlTitle: "",
     title: "",
@@ -20,6 +25,36 @@ export default function ProjectEditModal({
     highlights: [],
   });
   const initializedProjectRef = useRef(null);
+  const [skillTags, setSkillTags] = useState([]);
+  const [skillTagMap, setSkillTagMap] = useState({});
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const loadSkillTags = async () => {
+      try {
+        const response = await fetch("/api/skillshandler");
+        if (!response.ok) return;
+        const payload = await response.json();
+        const options = (payload.data || [])
+          .map((skill) => ({
+            name: String(skill.name || "").trim(),
+            category: String(skill.category || "other").trim() || "other",
+          }))
+          .filter((skill) => skill.name)
+          .sort((a, b) => a.name.localeCompare(b.name));
+        const nextMap = options.reduce((acc, skill) => {
+          acc[normalizeTagKey(skill.name)] = skill;
+          return acc;
+        }, {});
+        setSkillTags(options);
+        setSkillTagMap(nextMap);
+      } catch (error) {
+        console.error("Error loading skill tags:", error);
+      }
+    };
+
+    loadSkillTags();
+  }, [isOpen]);
 
   useEffect(() => {
     if (projectData && isOpen) {
@@ -138,7 +173,16 @@ export default function ProjectEditModal({
         technologies:
           technologies.length > 0
             ? technologies
-            : [{ title: "", link: "", category: "", proficiency: "", color: "", icon: "" }],
+            : [
+                {
+                  title: "",
+                  link: "",
+                  category: "",
+                  proficiency: "",
+                  color: "",
+                  icon: "",
+                },
+              ],
         images: images,
         projectType: projectData.type || "website",
         date: projectData.date || "",
@@ -188,12 +232,17 @@ export default function ProjectEditModal({
         formData.technologies
           .filter((t) => t.title && t.title.trim() !== "")
           .map((t) => {
-            const tech = { title: t.title };
+            const selectedSkill = skillTagMap[normalizeTagKey(t.title)];
+            const tech = {
+              title: selectedSkill?.name || t.title,
+              category: selectedSkill?.category || t.category || "other",
+            };
             if (t.link && t.link.trim() !== "") tech.link = t.link;
-            if (t.category && t.category.trim() !== "") tech.category = t.category;
-            if (t.proficiency !== "" && t.proficiency !== null) tech.proficiency = parseInt(t.proficiency);
+            const categoryForTech = selectedSkill?.category || t.category || "other";
+            if (!isCoreCategory(categoryForTech) && t.proficiency !== "" && t.proficiency !== null) {
+              tech.proficiency = parseInt(t.proficiency);
+            }
             if (t.color && t.color.trim() !== "") tech.color = t.color;
-            if (t.icon && t.icon.trim() !== "") tech.icon = t.icon;
             return tech;
           })
       ),
@@ -276,7 +325,14 @@ export default function ProjectEditModal({
       ...prev,
       technologies: [
         ...prev.technologies,
-        { title: "", link: "", category: "", proficiency: "", color: "", icon: "" },
+        {
+          title: "",
+          link: "",
+          category: "",
+          proficiency: "",
+          color: "",
+          icon: "",
+        },
       ],
     }));
   };
@@ -289,6 +345,26 @@ export default function ProjectEditModal({
   };
 
   const updateTechnology = (index, field, value) => {
+    if (field === "title") {
+      const selectedSkill = skillTagMap[normalizeTagKey(value)];
+      setFormData((prev) => ({
+        ...prev,
+        technologies: prev.technologies.map((t, i) =>
+          i === index
+            ? {
+                ...t,
+                title: value,
+                category: selectedSkill?.category || t.category || "other",
+                      proficiency:
+                        isCoreCategory(selectedSkill?.category || t.category)
+                          ? ""
+                          : t.proficiency,
+              }
+            : t
+        ),
+      }));
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       technologies: prev.technologies.map((t, i) =>
@@ -759,6 +835,11 @@ export default function ProjectEditModal({
                 + Add Technology
               </button>
             </div>
+            {skillTags.length === 0 ? (
+              <p className="text-xs text-yellow-300">
+                No skills are available yet. Add tags in Skills first.
+              </p>
+            ) : null}
 
             {formData.technologies.map((tech, index) => (
               <div key={index} className="space-y-3 p-4 glass rounded-lg border border-orange-500/20">
@@ -783,15 +864,20 @@ export default function ProjectEditModal({
                       ↓
                     </button>
                   </div>
-                  <input
-                    type="text"
+                  <select
                     value={tech.title || ""}
                     onChange={(e) =>
                       updateTechnology(index, "title", e.target.value)
                     }
                     className="flex-1 bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
-                    placeholder="Technology Name (e.g., React)"
-                  />
+                  >
+                    <option value="">-- Select existing tag --</option>
+                    {skillTags.map((skill) => (
+                      <option key={skill.name} value={skill.name}>
+                        {skill.name}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="text"
                     value={tech.link || ""}
@@ -814,21 +900,12 @@ export default function ProjectEditModal({
                     <label className="block text-xs font-semibold text-gray-400 mb-1">
                       Category
                     </label>
-                    <select
-                      value={tech.category || ""}
-                      onChange={(e) =>
-                        updateTechnology(index, "category", e.target.value)
-                      }
-                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
-                    >
-                      <option value="">Auto-detect</option>
-                      <option value="frontend">Frontend</option>
-                      <option value="backend">Backend</option>
-                      <option value="programming-language">Programming Language</option>
-                      <option value="game-dev">Game Development</option>
-                      <option value="tools">Tools & DevOps</option>
-                      <option value="other">Other</option>
-                    </select>
+                    <input
+                      type="text"
+                      value={skillTagMap[normalizeTagKey(tech.title)]?.category || tech.category || "other"}
+                      className="w-full bg-gray-900/40 border border-orange-500/20 rounded-lg px-3 py-2 text-gray-300 text-sm focus:outline-none"
+                      readOnly
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-400 mb-1">
@@ -839,6 +916,7 @@ export default function ProjectEditModal({
                       min="0"
                       max="100"
                       value={tech.proficiency || ""}
+                      disabled={isCoreCategory(skillTagMap[normalizeTagKey(tech.title)]?.category || tech.category)}
                       onChange={(e) =>
                         updateTechnology(
                           index,
@@ -846,12 +924,16 @@ export default function ProjectEditModal({
                           e.target.value ? parseInt(e.target.value) : ""
                         )
                       }
-                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
-                      placeholder="Auto (0-100)"
+                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none disabled:opacity-60"
+                      placeholder={
+                        isCoreCategory(skillTagMap[normalizeTagKey(tech.title)]?.category || tech.category)
+                          ? "Not used for core skills"
+                          : "Auto (0-100)"
+                      }
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-400 mb-1">
                       Color Gradient
@@ -864,20 +946,6 @@ export default function ProjectEditModal({
                       }
                       className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
                       placeholder="e.g., from-blue-500 to-cyan-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1">
-                      Icon (Emoji)
-                    </label>
-                    <input
-                      type="text"
-                      value={tech.icon || ""}
-                      onChange={(e) =>
-                        updateTechnology(index, "icon", e.target.value)
-                      }
-                      className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none"
-                      placeholder="e.g., ⚛️"
                     />
                   </div>
                 </div>

@@ -1,83 +1,83 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import StandardTag from "./standardtag";
+import { useTagUsage } from "./usetagusage";
+import TagUsageModal from "./tagusagemodal";
+import { buildTagSummary, getTagMeta, PROJECT_CATEGORY_LABELS } from "@/lib/tags";
 
-const fallbackTopSkills = [
-  { name: "JavaScript", proficiency: 95, category: "languages" },
-  { name: "C#", proficiency: 95, category: "languages" },
-  { name: "Unity", proficiency: 95, category: "frameworks" },
-  { name: "Git/GitHub", proficiency: 95, category: "tools" },
-  { name: "Python", proficiency: 90, category: "languages" },
-  { name: "React", proficiency: 90, category: "frameworks" },
-  { name: "REST APIs", proficiency: 90, category: "apis" },
-  { name: "Tailwind CSS", proficiency: 92, category: "frameworks" },
+const categoryOrder = [
+  "programming-language",
+  "frontend",
+  "backend",
+  "game-dev",
+  "tools",
+  "soft-skills",
+  "mathematics",
+  "computer-science",
+  "other",
 ];
 
-export default function TopSkills() {
-  const [topSkills, setTopSkills] = useState(fallbackTopSkills);
-  const [animatedWidths, setAnimatedWidths] = useState({});
-  const [loading, setLoading] = useState(true);
+export default function TopSkills({ skills = [] }) {
+  const [liveSkills, setLiveSkills] = useState(skills);
+  const [selectedTagUsage, setSelectedTagUsage] = useState(null);
+  const { getUsage, loadTagUsage } = useTagUsage();
 
   useEffect(() => {
+    const fetchTopSkills = async () => {
+      try {
+        const response = await fetch("/api/topskills");
+        if (!response.ok) return;
+        const data = await response.json();
+        if (Array.isArray(data.data) && data.data.length > 0) {
+          setLiveSkills(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching top skills:", error);
+      }
+    };
+
     fetchTopSkills();
   }, []);
 
-  useEffect(() => {
-    if (!loading) {
-      const timers = topSkills.map((skill, index) => {
-        return setTimeout(
-          () => {
-            setAnimatedWidths((prev) => ({
-              ...prev,
-              [skill.name]: skill.proficiency,
-            }));
-          },
-          index * 50 + 100,
-        );
+  const groupedSkills = useMemo(() => {
+    return liveSkills.reduce((acc, skill) => {
+      const tagMeta = getTagMeta(skill.name, skill.category);
+      const key = tagMeta.category || "other";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push({
+        ...skill,
+        canonicalLabel: tagMeta.label,
+        canonicalCategory: key,
       });
+      return acc;
+    }, {});
+  }, [liveSkills]);
 
-      return () => timers.forEach((timer) => clearTimeout(timer));
-    }
-  }, [topSkills, loading]);
+  const sortedCategories = categoryOrder
+    .filter((category) => (groupedSkills[category] || []).length > 0)
+    .map((category) => [category, groupedSkills[category]]);
 
-  const fetchTopSkills = async () => {
-    try {
-      const response = await fetch("/api/topskills");
-      if (response.ok) {
-        const data = await response.json();
-        if (data.data && data.data.length > 0) {
-          setTopSkills(data.data);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching top skills:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getTechImage = (name) => {
-    const nameMap = {
-      "C#": "CSharp",
-      "Next.js": "nextjs",
-      "Node.js": "NodeJS",
-      "Tailwind CSS": "tailwind",
-    };
-    const imageName = nameMap[name] || name.replace(/[^a-zA-Z0-9]/g, "");
-    return `/technologyimages/${imageName}.png`;
+  if (sortedCategories.length === 0) {
+    return null;
   };
 
   return (
     <section className="w-full mb-20 fade-in">
+      {selectedTagUsage && (
+        <TagUsageModal
+          tagUsage={selectedTagUsage}
+          onClose={() => setSelectedTagUsage(null)}
+        />
+      )}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2">
             <span className="gradient-text">Top Skills</span>
           </h2>
           <p className="text-gray-400 text-lg">
-            Technologies I'm most proficient in
+            Fast snapshot of my production stack
           </p>
         </div>
         <Link
@@ -88,56 +88,51 @@ export default function TopSkills() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {topSkills.map((skill, index) => {
-          const width = animatedWidths[skill.name] || 0;
-          const hasTechImage = [
-            "C#",
-            "Next.js",
-            "Node.js",
-            "Tailwind CSS",
-            "Unity",
-          ].includes(skill.name);
-
-          return (
-            <div
-              key={index}
-              className="glass rounded-lg p-4 border border-orange-500/30 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all duration-300"
-              style={{
-                animation: `floatIn 0.6s ease-out ${index * 0.05}s both`,
-              }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                {hasTechImage && (
-                  <div className="w-10 h-10 flex-shrink-0 relative">
-                    <Image
-                      src={getTechImage(skill.name)}
-                      width={40}
-                      height={40}
-                      alt={skill.name}
-                      className="object-contain"
-                    />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-lg text-gray-200">
-                      {skill.name}
-                    </h3>
-                  </div>
+      <div className="space-y-5">
+        {sortedCategories.map(([category, categorySkills]) => (
+          <div
+            key={category}
+            className="glass rounded-lg p-4 border border-orange-500/20"
+          >
+            <h3 className="text-sm uppercase tracking-wider text-orange-300 font-semibold mb-3">
+              {PROJECT_CATEGORY_LABELS[category] || category}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {categorySkills.map((skill) => (
+                <div key={skill.id || skill.name} className="flex flex-col gap-1">
+                  <StandardTag
+                    label={skill.canonicalLabel}
+                    category={skill.canonicalCategory}
+                    meta={
+                      skill.years_experience !== null &&
+                      skill.years_experience !== undefined
+                        ? `${skill.years_experience}y`
+                        : ""
+                    }
+                    title={skill.top_project_label || ""}
+                    onClick={async () => {
+                      const usage =
+                        (await loadTagUsage(skill.canonicalLabel)) ||
+                        getUsage(skill.canonicalLabel);
+                      if (usage) setSelectedTagUsage(usage);
+                    }}
+                  />
+                  {buildTagSummary({
+                    yearsExperience: skill.years_experience,
+                    counts: getUsage(skill.canonicalLabel)?.counts,
+                  }) ? (
+                    <span className="text-[11px] text-gray-500 px-1">
+                      {buildTagSummary({
+                        yearsExperience: skill.years_experience,
+                        counts: getUsage(skill.canonicalLabel)?.counts,
+                      })}
+                    </span>
+                  ) : null}
                 </div>
-              </div>
-              <div className="w-full h-3 bg-gray-800/80 border border-orange-500/50 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-orange-500 transition-all duration-700 ease-in-out relative"
-                  style={{ width: `${width}%` }}
-                >
-                  <div className="absolute right-0 top-0 bottom-0 w-1 bg-orange-300 rounded-full shadow-orange-300/80 shadow-[0_0_4px_2px_rgba(252,165,165,0.5)]"></div>
-                </div>
-              </div>
+              ))}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </section>
   );

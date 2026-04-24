@@ -1,6 +1,10 @@
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase';
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import {
+  getSkillCatalog,
+  sanitizeProjectTechnologies,
+} from "@/lib/tag-catalog";
 
 export async function POST(req) {
   try {
@@ -24,6 +28,7 @@ export async function POST(req) {
   try {
     // Use service role client for admin operations to bypass RLS
     const supabase = createServiceRoleClient();
+    const { byKey: skillCatalogByKey } = await getSkillCatalog(supabase);
     
     // Log the incoming data for debugging
     if (body.type === "edit") {
@@ -38,6 +43,18 @@ export async function POST(req) {
     }
 
     if (body.type == "new") {
+      const sanitizedTech = sanitizeProjectTechnologies(body.technologies, skillCatalogByKey);
+      if (sanitizedTech.unknown.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Some technologies are not defined in skills. Create them in Skills first.",
+            unknownTags: sanitizedTech.unknown,
+          },
+          { status: 400 }
+        );
+      }
       const { data, error } = await supabase
         .from('projects')
         .insert({
@@ -46,7 +63,7 @@ export async function POST(req) {
           descriptions: body.descriptions,
           images: body.images,
           links: body.links,
-          technologies: body.technologies || "[]",
+          technologies: JSON.stringify(sanitizedTech.technologies),
           type: body.projectType || "website",
           date: body.date || "undefined"
         })
@@ -56,6 +73,18 @@ export async function POST(req) {
       if (error) throw error;
       return NextResponse.json({ success: true, message: "Project created!", data }, { status: 200 });
     } else if (body.type == "edit") {
+      const sanitizedTech = sanitizeProjectTechnologies(body.technologies, skillCatalogByKey);
+      if (sanitizedTech.unknown.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Some technologies are not defined in skills. Create them in Skills first.",
+            unknownTags: sanitizedTech.unknown,
+          },
+          { status: 400 }
+        );
+      }
       // Ensure all JSON fields are strings
       const updateData = {
         url_title: body.urlTitle,
@@ -63,7 +92,7 @@ export async function POST(req) {
         descriptions: typeof body.descriptions === 'string' ? body.descriptions : JSON.stringify(body.descriptions || []),
         images: typeof body.images === 'string' ? body.images : JSON.stringify(body.images || []),
         links: typeof body.links === 'string' ? body.links : JSON.stringify(body.links || []),
-        technologies: typeof body.technologies === 'string' ? body.technologies : JSON.stringify(body.technologies || []),
+        technologies: JSON.stringify(sanitizedTech.technologies),
         type: body.projectType || body.type || "website",
         date: body.date || "undefined"
       };

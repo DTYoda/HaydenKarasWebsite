@@ -16,6 +16,9 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
             // Don't set a default - let user select
             defaultData[field.name] = "";
           }
+          if (field.type === "multiselect" && !Array.isArray(defaultData[field.name])) {
+            defaultData[field.name] = [];
+          }
         });
       }
       setFormData(defaultData);
@@ -32,6 +35,9 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
       .filter(field => {
         if (!field.required) return false;
         const value = formData[field.name];
+        if (field.type === "multiselect") {
+          return !Array.isArray(value) || value.length === 0;
+        }
         return value === null || value === undefined || value === "";
       })
       .map(field => field.label);
@@ -46,6 +52,26 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
 
   const handleChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const normalizeMultiValue = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string" && value.trim()) {
+      return value
+        .split("\n")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
+  const toggleMultiValue = (fieldName, optionValue) => {
+    const current = normalizeMultiValue(formData[fieldName]);
+    const exists = current.includes(optionValue);
+    const next = exists
+      ? current.filter((value) => value !== optionValue)
+      : [...current, optionValue];
+    handleChange(fieldName, next);
   };
 
   return (
@@ -112,6 +138,33 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
                   min={field.min}
                   max={field.max}
                 />
+              ) : field.type === "multiselect" ? (
+                <div className="rounded-lg border border-orange-500/30 bg-gray-900/30 p-3">
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {field.options?.map((opt) => {
+                      const selected = normalizeMultiValue(formData[field.name]).includes(opt.value);
+                      return (
+                        <label
+                          key={opt.value}
+                          className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => toggleMultiValue(field.name, opt.value)}
+                            className="accent-orange-500"
+                          />
+                          <span>{opt.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {normalizeMultiValue(formData[field.name]).length > 0 ? (
+                    <p className="text-xs text-gray-400 mt-2">
+                      Selected: {normalizeMultiValue(formData[field.name]).join(", ")}
+                    </p>
+                  ) : null}
+                </div>
               ) : (
                 <input
                   type={field.type || "text"}

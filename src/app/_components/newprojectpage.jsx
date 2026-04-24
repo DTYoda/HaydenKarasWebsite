@@ -9,6 +9,10 @@ import Link from "next/link";
 import EditButton from "./editbutton";
 import DeleteButton from "./deletebutton";
 import ProjectEditModal from "./projecteditmodal";
+import StandardTag from "./standardtag";
+import TagUsageModal from "./tagusagemodal";
+import { useTagUsage } from "./usetagusage";
+import { canonicalizeTagLabel, getTagMeta } from "@/lib/tags";
 
 export default function NewProjectPage({ projectData: initialProjectData }) {
   const { isAuthenticated } = useAuth();
@@ -19,6 +23,8 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
   const [animatedProficiencies, setAnimatedProficiencies] = useState({});
   const [editModal, setEditModal] = useState({ isOpen: false, section: null });
   const [uploading, setUploading] = useState(false);
+  const [selectedUsageTag, setSelectedUsageTag] = useState(null);
+  const { getUsage, loadTagUsage } = useTagUsage();
 
   useEffect(() => {
     setProjectData(initialProjectData);
@@ -116,88 +122,6 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
     return "other";
   };
 
-  const getDefaultProficiency = (techName) => {
-    const name = techName.toLowerCase();
-    if (
-      name.includes("next") ||
-      name.includes("react") ||
-      name.includes("node")
-    )
-      return 85;
-    if (name.includes("python") || name.includes("javascript")) return 80;
-    if (name.includes("unity") || name.includes("c#")) return 75;
-    return 70;
-  };
-
-  // Get color gradient based on category
-  const getTechColor = (category) => {
-    switch (category) {
-      case "frontend":
-        return "from-blue-500 to-cyan-500";
-      case "backend":
-        return "from-green-500 to-emerald-500";
-      case "game-dev":
-        return "from-purple-500 to-pink-500";
-      case "tools":
-        return "from-yellow-500 to-orange-500";
-      case "programming-language":
-        return "from-indigo-500 to-purple-500";
-      case "other":
-      default:
-        return "from-orange-500 to-red-500";
-    }
-  };
-
-  // Convert Tailwind gradient classes to CSS gradient
-  const getGradientColors = (gradientString) => {
-    // Map Tailwind color names to hex values
-    const colorMap = {
-      "blue-500": "#3b82f6",
-      "cyan-500": "#06b6d4",
-      "green-500": "#22c55e",
-      "emerald-500": "#10b981",
-      "yellow-500": "#eab308",
-      "orange-500": "#f97316",
-      "purple-500": "#a855f7",
-      "pink-500": "#ec4899",
-      "red-500": "#ef4444",
-      "teal-500": "#14b8a6",
-      "indigo-500": "#6366f1",
-    };
-
-    if (
-      gradientString &&
-      gradientString.includes("from-") &&
-      gradientString.includes("to-")
-    ) {
-      const fromMatch = gradientString.match(/from-(\w+-\d+)/);
-      const toMatch = gradientString.match(/to-(\w+-\d+)/);
-
-      if (fromMatch && toMatch) {
-        const fromColor = colorMap[fromMatch[1]] || "#f97316";
-        const toColor = colorMap[toMatch[1]] || "#ea580c";
-        return `linear-gradient(to right, ${fromColor}, ${toColor})`;
-      }
-    }
-
-    // Fallback to orange gradient
-    return "linear-gradient(to right, #f97316, #ea580c)";
-  };
-
-  const getTechIcon = (techName) => {
-    const name = techName.toLowerCase();
-    if (name.includes("react")) return "⚛️";
-    if (name.includes("next")) return "▲";
-    if (name.includes("node")) return "🟢";
-    if (name.includes("python")) return "🐍";
-    if (name.includes("javascript")) return "🟨";
-    if (name.includes("unity")) return "🎮";
-    if (name.includes("tailwind")) return "💨";
-    if (name.includes("supabase")) return "🗄️";
-    if (name.includes("git")) return "📦";
-    return "⚙️";
-  };
-
   // Get category label
   const getCategoryLabel = (category) => {
     const labels = {
@@ -211,7 +135,53 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
     return labels[category] || "Other";
   };
 
-  // Get category icon
+  const getDefaultProficiency = (techName) => {
+    const name = String(techName || "").toLowerCase();
+    if (name.includes("next") || name.includes("react") || name.includes("node")) return 85;
+    if (name.includes("python") || name.includes("javascript")) return 80;
+    if (name.includes("unity") || name.includes("c#")) return 75;
+    return 70;
+  };
+
+  const getTechColor = (category) => {
+    switch (category) {
+      case "frontend":
+        return "from-blue-500 to-cyan-500";
+      case "backend":
+        return "from-green-500 to-emerald-500";
+      case "game-dev":
+        return "from-purple-500 to-pink-500";
+      case "tools":
+        return "from-yellow-500 to-orange-500";
+      case "programming-language":
+        return "from-indigo-500 to-purple-500";
+      default:
+        return "from-orange-500 to-red-500";
+    }
+  };
+
+  const getGradientColors = (gradientString) => {
+    const colorMap = {
+      "blue-500": "#3b82f6",
+      "cyan-500": "#06b6d4",
+      "green-500": "#22c55e",
+      "emerald-500": "#10b981",
+      "yellow-500": "#eab308",
+      "orange-500": "#f97316",
+      "purple-500": "#a855f7",
+      "pink-500": "#ec4899",
+      "red-500": "#ef4444",
+      "indigo-500": "#6366f1",
+    };
+
+    const fromMatch = String(gradientString || "").match(/from-(\w+-\d+)/);
+    const toMatch = String(gradientString || "").match(/to-(\w+-\d+)/);
+    const fromColor = fromMatch ? colorMap[fromMatch[1]] || "#f97316" : "#f97316";
+    const toColor = toMatch ? colorMap[toMatch[1]] || "#ea580c" : "#ea580c";
+    return `linear-gradient(to right, ${fromColor}, ${toColor})`;
+  };
+
+  // Category icon for filter controls
   const getCategoryIcon = (category) => {
     const icons = {
       frontend: "🎨",
@@ -238,9 +208,15 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
 
   const images = rawImages.map(getImageUrl).filter(Boolean);
   const links = projectData ? JSON.parse(projectData.links || "[]") : [];
-  const rawTechnologies = projectData
-    ? JSON.parse(projectData.technologies || "[]")
-    : [];
+  const rawTechnologies = useMemo(() => {
+    if (!projectData) return [];
+    try {
+      return JSON.parse(projectData.technologies || "[]");
+    } catch (error) {
+      console.error("Error parsing technologies:", error);
+      return [];
+    }
+  }, [projectData]);
   const highlights =
     projectData && projectData.highlights
       ? (() => {
@@ -253,30 +229,52 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
         })()
       : [];
 
-  // Enhance technologies with visual data (using example data if not in DB)
+  // Normalize technology entries for standardized tag rendering.
   const technologies = useMemo(() => {
     return rawTechnologies.map((tech) => {
-      const category = tech.category || categorizeTechnology(tech.title);
+      const canonicalTitle = canonicalizeTagLabel(tech.title || tech.name || "");
+      const baseCategory = tech.category || categorizeTechnology(canonicalTitle);
+      const tagMeta = getTagMeta(canonicalTitle, baseCategory);
+      const category = tagMeta.category || baseCategory;
+      const isCoreCategory = ["soft-skills", "mathematics", "computer-science"].includes(
+        String(category || "").toLowerCase()
+      );
+      const skillType =
+        String(tech.skill_type || "").toLowerCase() === "core" || isCoreCategory
+          ? "core"
+          : "technical";
       return {
         ...tech,
-        category: category,
-        proficiency: tech.proficiency || getDefaultProficiency(tech.title),
+        title: tagMeta.label,
+        category,
+        skill_type: skillType,
+        proficiency: Number(tech.proficiency) || getDefaultProficiency(canonicalTitle),
+        icon: tagMeta.emoji || getCategoryIcon(category),
+        dotClass: tagMeta.dotClass,
         color: tech.color || getTechColor(category),
-        icon: tech.icon || getCategoryIcon(category),
       };
     });
   }, [rawTechnologies]);
 
-  // Animate proficiency bars on mount
+  const technicalTechnologies = useMemo(
+    () => technologies.filter((tech) => tech.skill_type !== "core"),
+    [technologies]
+  );
+
+  const coreTechnologies = useMemo(
+    () => technologies.filter((tech) => tech.skill_type === "core"),
+    [technologies]
+  );
+
   useEffect(() => {
-    const timers = technologies.map((tech, index) => {
-      return setTimeout(() => {
+    const timers = technologies.map((tech, index) =>
+      setTimeout(() => {
         setAnimatedProficiencies((prev) => ({
           ...prev,
           [tech.title]: tech.proficiency,
         }));
-      }, index * 50 + 100);
-    });
+      }, index * 50 + 100)
+    );
     return () => timers.forEach((timer) => clearTimeout(timer));
   }, [technologies]);
 
@@ -357,23 +355,14 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
   // Filter technologies by category
   const filteredTechnologies =
     selectedTechCategory === "all"
-      ? technologies
-      : technologies.filter((tech) => tech.category === selectedTechCategory);
+      ? technicalTechnologies
+      : technicalTechnologies.filter((tech) => tech.category === selectedTechCategory);
 
   // Get unique categories
   const categories = [
     "all",
-    ...new Set(technologies.map((tech) => tech.category)),
+    ...new Set(technicalTechnologies.map((tech) => tech.category)),
   ];
-
-  // Get usage label based on percentage used in project
-  const getProficiencyLabel = (proficiency) => {
-    if (proficiency >= 80) return "Extensively Used";
-    if (proficiency >= 60) return "Heavily Used";
-    if (proficiency >= 40) return "Moderately Used";
-    if (proficiency >= 20) return "Lightly Used";
-    return "Minimally Used";
-  };
 
   // Update project function
   const updateProject = async (updates) => {
@@ -687,9 +676,32 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
         </div>
 
         {/* Skills & Technologies - Visual Section */}
-        {technologies.length > 0 && (
+        {(technicalTechnologies.length > 0 || coreTechnologies.length > 0) && (
           <div className="w-full max-w-7xl mb-12 fade-in">
             <div className="glass rounded-2xl p-6 sm:p-8">
+              {coreTechnologies.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-sm uppercase tracking-wider text-orange-300 font-semibold mb-3">
+                    Core Skills Applied
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {coreTechnologies.map((skill, index) => (
+                      <StandardTag
+                        key={`${skill.title}-${index}`}
+                        label={skill.title}
+                        category={skill.category}
+                        onClick={async () => {
+                          const usage = (await loadTagUsage(skill.title)) || getUsage(skill.title);
+                          if (usage) setSelectedUsageTag(usage);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {technicalTechnologies.length > 0 ? (
+                <>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
                 <h2 className="text-2xl sm:text-3xl font-bold text-orange-500">
                   Technology Stack
@@ -716,67 +728,71 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
                 </div>
               </div>
 
-              {/* Technology Cards Grid */}
+              {/* Technology cards with original visual treatment */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredTechnologies.map((tech, id) => (
-                  <a
+                  <div
                     key={id}
-                    href={tech.link || "#"}
-                    target={tech.link ? "_blank" : undefined}
-                    rel={tech.link ? "noopener noreferrer" : undefined}
-                    className="group relative"
+                    className="glass rounded-xl p-5 border border-orange-500/20 hover:border-orange-500/50 transition-all duration-300 hover-lift h-full relative"
                   >
-                    <div className="glass rounded-xl p-5 border border-orange-500/20 hover:border-orange-500/50 transition-all duration-300 hover-lift h-full">
-                      {/* Tech Header */}
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="text-3xl flex-shrink-0">
-                          {tech.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-lg text-gray-200 truncate group-hover:text-orange-400 transition-colors">
-                            {tech.title}
-                          </h3>
-                          <p className="text-xs text-gray-500 capitalize">
-                            {getCategoryLabel(tech.category)}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Proficiency Bar */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-400">Usage Level</span>
-                          <span className="font-semibold text-orange-400">
-                            {tech.proficiency}%
-                          </span>
-                        </div>
-                        <div className="w-full h-2.5 bg-gray-800/80 rounded-full overflow-hidden border border-orange-500/20">
-                          <div
-                            className="h-full rounded-full transition-all duration-1000 ease-out"
-                            style={{
-                              width: `${Math.min(
-                                animatedProficiencies[tech.title] ||
-                                  tech.proficiency ||
-                                  0,
-                                100
-                              )}%`,
-                              background: getGradientColors(tech.color),
-                            }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          {getProficiencyLabel(tech.proficiency)}
-                        </p>
-                      </div>
-
-                      {/* Hover Effect Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    <div className="flex items-center justify-end mb-3">
+                      {tech.link ? (
+                        <a
+                          href={tech.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-orange-300 hover:text-orange-200"
+                        >
+                          Docs
+                        </a>
+                      ) : null}
                     </div>
-                  </a>
+                    <div className="mb-3">
+                      <StandardTag
+                        label={tech.title}
+                        category={tech.category}
+                        className="rounded-full"
+                        onClick={async () => {
+                          const usage = (await loadTagUsage(tech.title)) || getUsage(tech.title);
+                          if (usage) setSelectedUsageTag(usage);
+                        }}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Usage Level</span>
+                        <span className="font-semibold text-orange-400">{tech.proficiency}%</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-gray-800/80 rounded-full overflow-hidden border border-orange-500/20">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000 ease-out"
+                          style={{
+                            width: `${Math.min(
+                              animatedProficiencies[tech.title] || tech.proficiency || 0,
+                              100
+                            )}%`,
+                            background: getGradientColors(tech.color),
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
+                </>
+              ) : (
+                <p className="text-sm text-gray-400">No technical stack tags assigned.</p>
+              )}
             </div>
           </div>
+        )}
+
+        {selectedUsageTag && (
+          <TagUsageModal
+            tagUsage={selectedUsageTag}
+            onClose={() => setSelectedUsageTag(null)}
+          />
         )}
 
         {/* Key Achievements / Highlights */}
