@@ -27,6 +27,7 @@ export default function EditableTopSkills({ initialData }) {
   const [loading, setLoading] = useState(!initialData);
   const [skillCount, setSkillCount] = useState(8);
   const [allowedCategories, setAllowedCategories] = useState(categoryOrder);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [draftCount, setDraftCount] = useState(8);
   const [draftCategories, setDraftCategories] = useState(categoryOrder);
@@ -34,23 +35,21 @@ export default function EditableTopSkills({ initialData }) {
   const { getUsage, loadTagUsage } = useTagUsage();
 
   useEffect(() => {
-    // Only fetch if initialData wasn't provided
-    if (!initialData) {
-      const initialize = async () => {
-        await fetchSkillSettings();
-      };
-      initialize();
-    } else {
-      setLoading(false);
-    }
+    const initialize = async () => {
+      await fetchSkillSettings();
+      if (initialData) setLoading(false);
+    };
+    initialize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
   useEffect(() => {
+    if (!settingsLoaded) return;
     if (skillCount > 0 && allowedCategories.length > 0) {
       fetchTopSkills(skillCount, allowedCategories);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skillCount, allowedCategories.join(",")]);
+  }, [skillCount, allowedCategories.join(","), settingsLoaded]);
 
   const parseCategoriesSetting = (rawValue) => {
     if (!rawValue) return categoryOrder;
@@ -95,8 +94,10 @@ export default function EditableTopSkills({ initialData }) {
         setDraftCount(nextCount);
         setDraftCategories(nextCategories);
       }
+      setSettingsLoaded(true);
     } catch (error) {
       console.error("Error fetching top skill settings:", error);
+      setSettingsLoaded(true);
     }
   };
 

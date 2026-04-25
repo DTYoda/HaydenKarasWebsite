@@ -21,7 +21,6 @@ export default function Experience() {
               links={[
                 ["#skills", "Skills"],
                 ["#master-timeline", "Master Timeline"],
-                ["#certificates-awards", "Certificates and Awards"],
                 ["https://leetcode.com/u/DTYoda/", "LeetCode"],
               ]}
               page="experience"
