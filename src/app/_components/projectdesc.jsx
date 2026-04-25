@@ -6,7 +6,10 @@ export default function ProjectDescription({ description }) {
   const [category, setCategory] = useState(categories[0]);
 
   return (
-    <div className="w-full glass rounded-2xl overflow-hidden hover-lift">
+    <div
+      data-tilt-card="off"
+      className="w-full glass rounded-2xl overflow-hidden hover-lift"
+    >
       {/* Tab Navigation */}
       <div className="flex gap-2 p-4 border-b border-orange-500/20 bg-orange-500/5 flex-wrap">
         {categories.map((desc, i) => {

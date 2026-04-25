@@ -1,6 +1,7 @@
 import { createServerClient, createServiceRoleClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getSkillCatalog, resolveTagLabels, sanitizeTagSelection } from "@/lib/tag-catalog";
 
 function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
@@ -8,23 +9,6 @@ function isNonEmptyString(value) {
 
 function normalizeStatus(status) {
   return status === "published" ? "published" : "draft";
-}
-
-function normalizeTags(tags) {
-  if (Array.isArray(tags)) {
-    return tags
-      .map((tag) => (typeof tag === "string" ? tag.trim() : ""))
-      .filter(Boolean);
-  }
-
-  if (typeof tags === "string") {
-    return tags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-  }
-
-  return [];
 }
 
 function normalizeTimestamp(value) {
@@ -84,6 +68,7 @@ export async function GET(req) {
     const isAdmin = await isAdminAuthenticated();
 
     const supabase = createServerClient();
+    const skillCatalog = await getSkillCatalog(supabase);
     const baseSelect = "id,title,slug,excerpt,content_json,content_html,cover_image_url,tags,status,published_at,created_at,updated_at,views_count,likes_count";
 
     if (slug) {
@@ -102,8 +87,13 @@ export async function GET(req) {
       if (!post) {
         return NextResponse.json({ success: false, message: "Post not found" }, { status: 404 });
       }
+      const normalizedPost = {
+        ...post,
+        tag_ids: Array.isArray(post.tags) ? post.tags : [],
+        tags: resolveTagLabels(post.tags, skillCatalog.byId, skillCatalog.byKey),
+      };
 
-      return NextResponse.json({ success: true, data: post }, { status: 200 });
+      return NextResponse.json({ success: true, data: normalizedPost }, { status: 200 });
     }
 
     let listQuery = supabase
@@ -122,7 +112,12 @@ export async function GET(req) {
       throw error;
     }
 
-    return NextResponse.json({ success: true, data: data || [] }, { status: 200 });
+    const normalized = (data || []).map((post) => ({
+      ...post,
+      tag_ids: Array.isArray(post.tags) ? post.tags : [],
+      tags: resolveTagLabels(post.tags, skillCatalog.byId, skillCatalog.byKey),
+    }));
+    return NextResponse.json({ success: true, data: normalized }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ success: false, message: "Error fetching blog posts" }, { status: 500 });
@@ -147,6 +142,7 @@ export async function POST(req) {
 
   try {
     const supabase = createServiceRoleClient();
+    const skillCatalog = await getSkillCatalog(supabase);
 
     if (body.type === "new") {
       const validationError = validatePostBody(body);
@@ -164,6 +160,17 @@ export async function POST(req) {
         status === "published"
           ? normalizeTimestamp(body.publishedAt) || new Date().toISOString()
           : null;
+      const normalizedTags = sanitizeTagSelection(body.tags, skillCatalog);
+      if (normalizedTags.unknown.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Some tags are not defined in skills. Create them in Skills first.",
+            unknownTags: normalizedTags.unknown,
+          },
+          { status: 400 }
+        );
+      }
 
       const payload = {
         title: body.title.trim(),
@@ -172,7 +179,7 @@ export async function POST(req) {
         content_json: body.contentJson,
         content_html: body.contentHtml,
         cover_image_url: typeof body.coverImageUrl === "string" ? body.coverImageUrl.trim() : null,
-        tags: normalizeTags(body.tags),
+        tags: normalizedTags.tagIds,
         status,
         published_at: publishedAt,
       };
@@ -205,6 +212,17 @@ export async function POST(req) {
         status === "published"
           ? normalizeTimestamp(body.publishedAt) || new Date().toISOString()
           : null;
+      const normalizedTags = sanitizeTagSelection(body.tags, skillCatalog);
+      if (normalizedTags.unknown.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Some tags are not defined in skills. Create them in Skills first.",
+            unknownTags: normalizedTags.unknown,
+          },
+          { status: 400 }
+        );
+      }
 
       const payload = {
         title: body.title.trim(),
@@ -213,7 +231,7 @@ export async function POST(req) {
         content_json: body.contentJson,
         content_html: body.contentHtml,
         cover_image_url: typeof body.coverImageUrl === "string" ? body.coverImageUrl.trim() : null,
-        tags: normalizeTags(body.tags),
+        tags: normalizedTags.tagIds,
         status,
         published_at: publishedAt,
         updated_at: new Date().toISOString(),

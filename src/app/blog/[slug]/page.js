@@ -23,7 +23,30 @@ async function fetchPostBySlug(slug) {
     return null;
   }
 
-  return data[0];
+  const post = data[0];
+  const { data: skillsData, error: skillsError } = await supabase.from("skills").select("id,name");
+  if (skillsError) return post;
+  const skillById = new Map(
+    (skillsData || [])
+      .map((skill) => [String(skill.id || "").trim(), String(skill.name || "").trim()])
+      .filter(([id, name]) => id && name)
+  );
+  const skillByNameKey = new Map(
+    (skillsData || [])
+      .map((skill) => [
+        String(skill.name || "").trim().toLowerCase(),
+        String(skill.name || "").trim(),
+      ])
+      .filter(([key, name]) => key && name)
+  );
+  const tagIds = Array.isArray(post.tags) ? post.tags.map((tag) => String(tag || "").trim()) : [];
+  return {
+    ...post,
+    tag_ids: tagIds,
+    tags: tagIds
+      .map((id) => skillById.get(id) || skillByNameKey.get(id.toLowerCase()))
+      .filter(Boolean),
+  };
 }
 
 export async function generateMetadata({ params }) {

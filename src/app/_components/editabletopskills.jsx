@@ -7,7 +7,7 @@ import EditButton from "./editbutton";
 import StandardTag from "./standardtag";
 import { useTagUsage } from "./usetagusage";
 import TagUsageModal from "./tagusagemodal";
-import { buildTagSummary, getTagMeta, PROJECT_CATEGORY_LABELS } from "@/lib/tags";
+import { buildTagStatChips, getTagMeta, PROJECT_CATEGORY_LABELS } from "@/lib/tags";
 
 const categoryOrder = [
   "programming-language",
@@ -262,12 +262,6 @@ export default function EditableTopSkills({ initialData }) {
                       <StandardTag
                         label={skill.canonicalLabel}
                         category={skill.canonicalCategory}
-                        meta={
-                          skill.years_experience !== null &&
-                          skill.years_experience !== undefined
-                            ? `${skill.years_experience}y`
-                            : ""
-                        }
                         title={skill.top_project_label || skill.description}
                         onClick={async () => {
                           const usage =
@@ -276,16 +270,23 @@ export default function EditableTopSkills({ initialData }) {
                           if (usage) setSelectedTagUsage(usage);
                         }}
                       />
-                      {buildTagSummary({
+                      {buildTagStatChips({
                         yearsExperience: skill.years_experience,
                         counts: getUsage(skill.canonicalLabel)?.counts,
-                      }) ? (
-                        <span className="text-[11px] text-gray-500 px-1">
-                          {buildTagSummary({
+                      }).length > 0 ? (
+                        <div className="flex flex-wrap gap-1 px-0.5 pt-0.5">
+                          {buildTagStatChips({
                             yearsExperience: skill.years_experience,
                             counts: getUsage(skill.canonicalLabel)?.counts,
-                          })}
-                        </span>
+                          }).map((chip) => (
+                            <span
+                              key={`${skill.id || skill.name}-${chip}`}
+                              className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-gray-300"
+                            >
+                              {chip}
+                            </span>
+                          ))}
+                        </div>
                       ) : null}
                     </div>
                   ))}

@@ -1,7 +1,7 @@
 import { createServiceRoleClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { getSkillCatalog, sanitizeTagSelection } from "@/lib/tag-catalog";
+import { getSkillCatalog, resolveTagLabels, sanitizeTagSelection } from "@/lib/tag-catalog";
 
 function normalizeHighlights(highlights) {
   if (Array.isArray(highlights)) {
@@ -20,24 +20,24 @@ function normalizeExperienceType(value) {
   return value === "research" ? "research" : "work";
 }
 
-function parseBoolean(value) {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "string") return value.toLowerCase() === "true";
-  return false;
-}
-
 export async function GET() {
   try {
     // Use service role for reliable public content reads even if RLS policies lag behind schema changes.
     const supabase = createServiceRoleClient();
+    const skillCatalog = await getSkillCatalog(supabase);
     const { data, error } = await supabase
       .from("work_research_experience")
       .select("*")
       .order("display_order", { ascending: true })
-      .order("start_date", { ascending: false });
+      .order("title", { ascending: true });
 
     if (error) throw error;
-    return NextResponse.json({ success: true, data: data || [] }, { status: 200 });
+    const normalized = (data || []).map((entry) => ({
+      ...entry,
+      tag_ids: Array.isArray(entry.tags) ? entry.tags : [],
+      tags: resolveTagLabels(entry.tags, skillCatalog.byId, skillCatalog.byKey),
+    }));
+    return NextResponse.json({ success: true, data: normalized }, { status: 200 });
   } catch (error) {
     console.error("Error fetching work and research experience:", error);
     return NextResponse.json(
@@ -69,10 +69,10 @@ export async function POST(req) {
     }
 
     const supabase = createServiceRoleClient();
-    const { byKey: skillCatalogByKey } = await getSkillCatalog(supabase);
+    const skillCatalog = await getSkillCatalog(supabase);
 
     if (body.type === "new") {
-      const normalizedTags = sanitizeTagSelection(body.tags, skillCatalogByKey);
+      const normalizedTags = sanitizeTagSelection(body.tags, skillCatalog);
       if (normalizedTags.unknown.length > 0) {
         return NextResponse.json(
           {
@@ -92,12 +92,10 @@ export async function POST(req) {
           type: normalizeExperienceType(
             body.experience_type || body.experienceType || body.category
           ),
-          start_date: body.start_date || null,
-          end_date: body.end_date || null,
-          is_current: parseBoolean(body.is_current),
+          term_label: body.term_label || "",
           summary: body.summary || "",
           highlights: normalizeHighlights(body.highlights),
-          tags: normalizedTags.tags,
+          tags: normalizedTags.tagIds,
           link: body.link || "",
           link_text: body.link_text || body.linkText || "",
           display_order: Number.isFinite(Number(body.display_order))
@@ -112,7 +110,7 @@ export async function POST(req) {
     }
 
     if (body.type === "edit") {
-      const normalizedTags = sanitizeTagSelection(body.tags, skillCatalogByKey);
+      const normalizedTags = sanitizeTagSelection(body.tags, skillCatalog);
       if (normalizedTags.unknown.length > 0) {
         return NextResponse.json(
           {
@@ -132,12 +130,10 @@ export async function POST(req) {
           type: normalizeExperienceType(
             body.experience_type || body.experienceType || body.category
           ),
-          start_date: body.start_date || null,
-          end_date: body.end_date || null,
-          is_current: parseBoolean(body.is_current),
+          term_label: body.term_label || "",
           summary: body.summary || "",
           highlights: normalizeHighlights(body.highlights),
-          tags: normalizedTags.tags,
+          tags: normalizedTags.tagIds,
           link: body.link || "",
           link_text: body.link_text || body.linkText || "",
           display_order: Number.isFinite(Number(body.display_order))

@@ -19,26 +19,33 @@ export function normalizeSkillCategory(value) {
 export async function getSkillCatalog(supabase) {
   const { data, error } = await supabase
     .from("skills")
-    .select("name,category,description")
+    .select("id,name,category,description,years_experience")
     .order("name", { ascending: true });
 
   if (error) throw error;
 
   const byKey = new Map();
+  const byId = new Map();
   (data || []).forEach((skill) => {
+    const id = String(skill.id || "").trim();
     const key = normalizeTagKey(skill.name);
-    if (!key) return;
-    byKey.set(key, {
+    if (!id || !key) return;
+    const normalized = {
+      id,
       name: String(skill.name || "").trim(),
       category: normalizeSkillCategory(skill.category),
       description: String(skill.description || "").trim(),
-    });
+      years_experience: skill.years_experience,
+    };
+    byKey.set(key, normalized);
+    byId.set(id, normalized);
   });
 
   return {
     byKey,
+    byId,
     options: Array.from(byKey.values()).map((skill) => ({
-      value: skill.name,
+      value: skill.id,
       label: skill.name,
       category: skill.category || "other",
     })),
@@ -63,24 +70,27 @@ export function normalizeSelectedTags(value) {
 export function sanitizeTagSelection(value, catalogByKey) {
   const selected = normalizeSelectedTags(value);
   const unknown = [];
-  const resolved = [];
+  const resolvedIds = [];
   const seen = new Set();
 
   selected.forEach((tag) => {
-    const key = normalizeTagKey(tag);
-    if (!key) return;
-    const skill = catalogByKey.get(key);
+    const raw = String(tag || "").trim();
+    if (!raw) return;
+    const skill =
+      catalogByKey.byId?.get(raw) ||
+      catalogByKey.byKey?.get(normalizeTagKey(raw)) ||
+      null;
     if (!skill) {
       unknown.push(tag);
       return;
     }
-    if (seen.has(skill.name.toLowerCase())) return;
-    seen.add(skill.name.toLowerCase());
-    resolved.push(skill.name);
+    if (seen.has(skill.id)) return;
+    seen.add(skill.id);
+    resolvedIds.push(skill.id);
   });
 
   return {
-    tags: resolved,
+    tagIds: resolvedIds,
     unknown,
   };
 }
@@ -104,26 +114,28 @@ export function sanitizeProjectTechnologies(value, catalogByKey) {
 
   const next = technologies
     .map((tech) => {
-      if (!tech || typeof tech !== "object") return null;
-      const rawName = String(tech.title || tech.name || "").trim();
-      const key = normalizeTagKey(rawName);
-      if (!key) return null;
-      const skill = catalogByKey.get(key);
+      const rawSkillId = String(tech?.id || tech?.skill_id || tech || "").trim();
+      const rawName = String(tech?.title || tech?.name || tech || "").trim();
+      const skill =
+        catalogByKey.byId?.get(rawSkillId) ||
+        catalogByKey.byKey?.get(normalizeTagKey(rawName)) ||
+        null;
       if (!skill) {
-        unknown.push(rawName);
+        unknown.push(rawName || rawSkillId);
         return null;
       }
 
       const normalized = {
+        id: skill.id,
         title: skill.name,
         category: skill.category || "other",
       };
 
-      if (tech.link) normalized.link = String(tech.link).trim();
-      if (Number.isFinite(Number(tech.proficiency))) {
+      if (tech?.link) normalized.link = String(tech.link).trim();
+      if (Number.isFinite(Number(tech?.proficiency))) {
         normalized.proficiency = Number(tech.proficiency);
       }
-      if (tech.color) normalized.color = String(tech.color).trim();
+      if (tech?.color) normalized.color = String(tech.color).trim();
 
       return normalized;
     })
@@ -132,7 +144,7 @@ export function sanitizeProjectTechnologies(value, catalogByKey) {
   const deduped = [];
   const seen = new Set();
   next.forEach((tech) => {
-    const key = normalizeTagKey(tech.title);
+    const key = String(tech.id);
     if (seen.has(key)) return;
     seen.add(key);
     deduped.push(tech);
@@ -142,4 +154,16 @@ export function sanitizeProjectTechnologies(value, catalogByKey) {
     technologies: deduped,
     unknown,
   };
+}
+
+export function resolveTagLabels(tagIds, catalogById, catalogByKey = new Map()) {
+  const labels = [];
+  const ids = normalizeSelectedTags(tagIds);
+  ids.forEach((id) => {
+    const raw = String(id || "").trim();
+    const skill = catalogById.get(raw) || catalogByKey.get(normalizeTagKey(raw));
+    if (!skill) return;
+    labels.push(skill.name);
+  });
+  return labels;
 }

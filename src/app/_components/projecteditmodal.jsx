@@ -27,6 +27,7 @@ export default function ProjectEditModal({
   const initializedProjectRef = useRef(null);
   const [skillTags, setSkillTags] = useState([]);
   const [skillTagMap, setSkillTagMap] = useState({});
+  const [skillTagById, setSkillTagById] = useState({});
 
   useEffect(() => {
     if (!isOpen) return;
@@ -37,17 +38,23 @@ export default function ProjectEditModal({
         const payload = await response.json();
         const options = (payload.data || [])
           .map((skill) => ({
+            id: String(skill.id || "").trim(),
             name: String(skill.name || "").trim(),
             category: String(skill.category || "other").trim() || "other",
           }))
-          .filter((skill) => skill.name)
+          .filter((skill) => skill.id && skill.name)
           .sort((a, b) => a.name.localeCompare(b.name));
         const nextMap = options.reduce((acc, skill) => {
           acc[normalizeTagKey(skill.name)] = skill;
           return acc;
         }, {});
+        const nextById = options.reduce((acc, skill) => {
+          acc[skill.id] = skill;
+          return acc;
+        }, {});
         setSkillTags(options);
         setSkillTagMap(nextMap);
+        setSkillTagById(nextById);
       } catch (error) {
         console.error("Error loading skill tags:", error);
       }
@@ -119,6 +126,7 @@ export default function ProjectEditModal({
         if (!Array.isArray(technologies)) technologies = [];
         // Ensure each technology has all fields
         technologies = technologies.map((tech) => ({
+          id: String(tech.id || tech.skill_id || "").trim(),
           title: tech.title || "",
           link: tech.link || "",
           category: tech.category || "",
@@ -175,6 +183,7 @@ export default function ProjectEditModal({
             ? technologies
             : [
                 {
+                  id: "",
                   title: "",
                   link: "",
                   category: "",
@@ -195,6 +204,25 @@ export default function ProjectEditModal({
       });
     }
   }, [projectData, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || Object.keys(skillTagMap).length === 0) return;
+    setFormData((prev) => ({
+      ...prev,
+      technologies: (prev.technologies || []).map((tech) => {
+        const existingId = String(tech.id || "").trim();
+        if (existingId) return tech;
+        const matchedSkill = skillTagMap[normalizeTagKey(tech.title)];
+        if (!matchedSkill) return tech;
+        return {
+          ...tech,
+          id: matchedSkill.id,
+          title: matchedSkill.name,
+          category: matchedSkill.category || tech.category || "other",
+        };
+      }),
+    }));
+  }, [isOpen, skillTagMap]);
 
   if (!isOpen) return null;
 
@@ -230,10 +258,13 @@ export default function ProjectEditModal({
       ),
       technologies: JSON.stringify(
         formData.technologies
-          .filter((t) => t.title && t.title.trim() !== "")
+          .filter((t) => (t.id && String(t.id).trim()) || (t.title && t.title.trim() !== ""))
           .map((t) => {
-            const selectedSkill = skillTagMap[normalizeTagKey(t.title)];
+            const selectedSkill =
+              skillTagById[String(t.id || "").trim()] ||
+              skillTagMap[normalizeTagKey(t.title)];
             const tech = {
+              id: selectedSkill?.id || String(t.id || "").trim(),
               title: selectedSkill?.name || t.title,
               category: selectedSkill?.category || t.category || "other",
             };
@@ -326,6 +357,7 @@ export default function ProjectEditModal({
       technologies: [
         ...prev.technologies,
         {
+          id: "",
           title: "",
           link: "",
           category: "",
@@ -345,15 +377,16 @@ export default function ProjectEditModal({
   };
 
   const updateTechnology = (index, field, value) => {
-    if (field === "title") {
-      const selectedSkill = skillTagMap[normalizeTagKey(value)];
+    if (field === "id") {
+      const selectedSkill = skillTagById[String(value || "").trim()];
       setFormData((prev) => ({
         ...prev,
         technologies: prev.technologies.map((t, i) =>
           i === index
             ? {
                 ...t,
-                title: value,
+                id: value,
+                title: selectedSkill?.name || t.title,
                 category: selectedSkill?.category || t.category || "other",
                       proficiency:
                         isCoreCategory(selectedSkill?.category || t.category)
@@ -865,15 +898,15 @@ export default function ProjectEditModal({
                     </button>
                   </div>
                   <select
-                    value={tech.title || ""}
+                    value={tech.id || ""}
                     onChange={(e) =>
-                      updateTechnology(index, "title", e.target.value)
+                      updateTechnology(index, "id", e.target.value)
                     }
                     className="flex-1 bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
                   >
                     <option value="">-- Select existing tag --</option>
                     {skillTags.map((skill) => (
-                      <option key={skill.name} value={skill.name}>
+                      <option key={skill.id} value={skill.id}>
                         {skill.name}
                       </option>
                     ))}
@@ -902,7 +935,7 @@ export default function ProjectEditModal({
                     </label>
                     <input
                       type="text"
-                      value={skillTagMap[normalizeTagKey(tech.title)]?.category || tech.category || "other"}
+                      value={skillTagById[String(tech.id || "").trim()]?.category || tech.category || "other"}
                       className="w-full bg-gray-900/40 border border-orange-500/20 rounded-lg px-3 py-2 text-gray-300 text-sm focus:outline-none"
                       readOnly
                     />
@@ -916,7 +949,7 @@ export default function ProjectEditModal({
                       min="0"
                       max="100"
                       value={tech.proficiency || ""}
-                      disabled={isCoreCategory(skillTagMap[normalizeTagKey(tech.title)]?.category || tech.category)}
+                      disabled={isCoreCategory(skillTagById[String(tech.id || "").trim()]?.category || tech.category)}
                       onChange={(e) =>
                         updateTechnology(
                           index,
@@ -926,7 +959,7 @@ export default function ProjectEditModal({
                       }
                       className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-3 py-2 text-white text-sm focus:border-orange-500 focus:outline-none disabled:opacity-60"
                       placeholder={
-                        isCoreCategory(skillTagMap[normalizeTagKey(tech.title)]?.category || tech.category)
+                        isCoreCategory(skillTagById[String(tech.id || "").trim()]?.category || tech.category)
                           ? "Not used for core skills"
                           : "Auto (0-100)"
                       }

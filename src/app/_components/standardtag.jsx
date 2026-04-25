@@ -11,7 +11,7 @@ export default function StandardTag({
   className = "",
   category,
   showEmoji = true,
-  showDot = true,
+  showDot = false,
 }) {
   if (!label) return null;
   const tagMeta = getTagMeta(label, category);
@@ -89,10 +89,8 @@ export default function StandardTag({
       {showDot ? (
         <span className={`h-2.5 w-2.5 rounded-full ${tagMeta.dotClass}`} aria-hidden="true" />
       ) : null}
-      <span className="font-medium">
-        {showEmoji ? `${tagMeta.emoji} ` : ""}
-        {tagMeta.label}
-      </span>
+      {showEmoji ? <span className="font-medium leading-none">{tagMeta.emoji}</span> : null}
+      <span className="font-medium">{tagMeta.label}</span>
       {meta ? (
         <span className={`text-xs ${metaStyles[tagMeta.category] || metaStyles.other}`}>
           {meta}
@@ -102,7 +100,7 @@ export default function StandardTag({
   );
 
   const baseClassName =
-    "inline-flex w-fit max-w-max items-center justify-center whitespace-nowrap gap-0.5 px-2 py-1 rounded-full text-sm text-white font-medium leading-none text-center border transform-gpu transition-all duration-200 ease-out hover:-translate-y-0.5 hover:scale-105 hover:brightness-110 hover:shadow-[0_0_14px_var(--tag-glow)]";
+    "inline-flex w-fit max-w-max items-center justify-center whitespace-nowrap gap-1 px-2.5 py-1 rounded-full text-sm text-white font-medium leading-none text-center border transform-gpu transition-all duration-200 ease-out hover:-translate-y-0.5 hover:scale-105 hover:brightness-110 hover:shadow-[0_0_14px_var(--tag-glow)]";
   const combinedClassName = `${baseClassName} ${className}`.trim();
   const visualStyle = {
     borderColor: selectedStyles.border,

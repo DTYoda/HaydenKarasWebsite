@@ -1,5 +1,11 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { BLOG_CONTENT_CLASS } from "./blogcontentstyles";
 import BlogEngagement from "./blogengagement";
+import StandardTag from "./standardtag";
+import TagUsageModal from "./tagusagemodal";
+import { useTagUsage } from "./usetagusage";
 
 function formatDate(value) {
   if (!value) {
@@ -19,8 +25,25 @@ function formatDate(value) {
 }
 
 export default function BlogPostView({ post }) {
+  const [selectedTagUsage, setSelectedTagUsage] = useState(null);
+  const { getUsage, loadTagUsage } = useTagUsage();
+  const normalizedTags = useMemo(
+    () =>
+      Array.isArray(post.tags)
+        ? post.tags.map((tag) => String(tag || "").trim()).filter(Boolean)
+        : [],
+    [post.tags]
+  );
+
   return (
-    <article className="glass rounded-2xl border border-orange-500/20 p-6 sm:p-8">
+    <>
+      {selectedTagUsage && (
+        <TagUsageModal tagUsage={selectedTagUsage} onClose={() => setSelectedTagUsage(null)} />
+      )}
+      <article
+        data-tilt-card="off"
+        className="glass rounded-2xl border border-orange-500/20 p-6 sm:p-8"
+      >
       <header className="mb-8">
         <p className="text-sm text-gray-400 mb-2">
           {formatDate(post.published_at || post.created_at)}
@@ -28,15 +51,20 @@ export default function BlogPostView({ post }) {
         </p>
         <h1 className="text-4xl sm:text-5xl font-bold gradient-text mb-4">{post.title}</h1>
         {post.excerpt && <p className="text-lg text-gray-300">{post.excerpt}</p>}
-        {Array.isArray(post.tags) && post.tags.length > 0 && (
+        {normalizedTags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
-            {post.tags.map((tag) => (
-              <span
+            {normalizedTags.map((tag) => (
+              <StandardTag
                 key={`${post.id}-${tag}`}
-                className="text-xs px-2 py-1 rounded-md bg-orange-500/10 border border-orange-500/20 text-orange-300"
-              >
-                {tag}
-              </span>
+                label={tag}
+                category={getUsage(tag)?.category || "other"}
+                onClick={async () => {
+                  const usage = (await loadTagUsage(tag)) || getUsage(tag);
+                  if (usage) {
+                    setSelectedTagUsage(usage);
+                  }
+                }}
+              />
             ))}
           </div>
         )}
@@ -60,6 +88,7 @@ export default function BlogPostView({ post }) {
         className={`text-gray-200 ${BLOG_CONTENT_CLASS}`}
         dangerouslySetInnerHTML={{ __html: post.content_html || "<p></p>" }}
       />
-    </article>
+      </article>
+    </>
   );
 }

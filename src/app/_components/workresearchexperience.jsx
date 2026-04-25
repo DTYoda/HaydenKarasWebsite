@@ -6,20 +6,6 @@ import AddButton from "./addbutton";
 import EditButton from "./editbutton";
 import DeleteButton from "./deletebutton";
 
-function formatDateRange(startDate, endDate, isCurrent) {
-  if (!startDate && !endDate) return "Dates unavailable";
-
-  const formatOne = (value) =>
-    new Date(value).toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
-
-  const start = startDate ? formatOne(startDate) : "Start";
-  const end = isCurrent ? "Present" : endDate ? formatOne(endDate) : "Present";
-  return `${start} - ${end}`;
-}
-
 function WorkResearchCard({ item, isAuthenticated, onEdit, onDelete }) {
   return (
     <article className="glass rounded-xl p-5 sm:p-6 hover-lift relative">
@@ -33,7 +19,7 @@ function WorkResearchCard({ item, isAuthenticated, onEdit, onDelete }) {
         </>
       )}
       <p className="text-xs uppercase tracking-wider text-orange-400 font-semibold mb-2">
-        {formatDateRange(item.start_date, item.end_date, item.is_current)}
+        {item.term_label || "Undated"}
       </p>
       <h4 className="text-lg sm:text-xl font-bold pr-10 pl-10 sm:pl-12">{item.title}</h4>
       <p className="text-sm text-gray-300 mt-1">{item.organization}</p>
@@ -91,18 +77,7 @@ export default function WorkResearchExperience({
         { value: "research", label: "Research" },
       ],
     },
-    { name: "start_date", label: "Start Date", type: "date", required: false },
-    { name: "end_date", label: "End Date", type: "date", required: false },
-    {
-      name: "is_current",
-      label: "Current Role (true/false)",
-      type: "select",
-      required: false,
-      options: [
-        { value: "false", label: "No" },
-        { value: "true", label: "Yes" },
-      ],
-    },
+    { name: "term_label", label: "Term Label (e.g. Fall 2025)", type: "text", required: true },
     {
       name: "summary",
       label: "Summary",
@@ -132,7 +107,6 @@ export default function WorkResearchExperience({
       {
         ...item,
         experience_type: item.type || "work",
-        is_current: item.is_current ? "true" : "false",
         highlights: Array.isArray(item.highlights)
           ? item.highlights.join("\n")
           : item.highlights || "",

@@ -116,6 +116,7 @@ export function useEditable(type, onSaveCallback) {
           break;
         case "skill":
           endpoint = "/api/skillshandler";
+          payload.id = id;
           payload.name = name;
           break;
         case "education":

@@ -146,8 +146,7 @@ CREATE TABLE IF NOT EXISTS work_research_experience (
   title TEXT NOT NULL,
   organization TEXT NOT NULL DEFAULT '',
   type TEXT NOT NULL DEFAULT 'work' CHECK (type IN ('work', 'research')),
-  start_date DATE,
-  end_date DATE,
+  term_label TEXT NOT NULL DEFAULT 'Undated',
   is_current BOOLEAN NOT NULL DEFAULT FALSE,
   summary TEXT NOT NULL DEFAULT '',
   highlights JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -161,14 +160,12 @@ CREATE TABLE IF NOT EXISTS work_research_experience (
 
 CREATE INDEX IF NOT EXISTS idx_work_research_type ON work_research_experience(type);
 CREATE INDEX IF NOT EXISTS idx_work_research_display_order ON work_research_experience(display_order);
-CREATE INDEX IF NOT EXISTS idx_work_research_start_date ON work_research_experience(start_date DESC);
+CREATE INDEX IF NOT EXISTS idx_work_research_term_label ON work_research_experience(term_label);
 
 -- Education timeline courses table (detailed per-course entries)
 CREATE TABLE IF NOT EXISTS education_timeline_courses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   term_label TEXT NOT NULL,
-  term_start DATE,
-  term_end DATE,
   course_name TEXT NOT NULL,
   subtitle TEXT NOT NULL DEFAULT '',
   description TEXT NOT NULL DEFAULT '',
@@ -184,7 +181,6 @@ CREATE TABLE IF NOT EXISTS education_timeline_courses (
 
 CREATE INDEX IF NOT EXISTS idx_education_timeline_term_label ON education_timeline_courses(term_label);
 CREATE INDEX IF NOT EXISTS idx_education_timeline_display_order ON education_timeline_courses(display_order);
-CREATE INDEX IF NOT EXISTS idx_education_timeline_term_start ON education_timeline_courses(term_start DESC);
 
 -- Skill metadata for compact skill tags
 ALTER TABLE IF EXISTS skills

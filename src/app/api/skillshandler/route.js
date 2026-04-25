@@ -20,14 +20,55 @@ async function findSkillByNormalizedName(supabase, targetName) {
   return (data || []).find((skill) => normalizeTagValue(skill.name) === normalizedTarget) || null;
 }
 
-function replaceTagInList(tags, oldName, newName) {
-  if (!Array.isArray(tags)) return { changed: false, next: tags };
-  const oldKey = normalizeTagValue(oldName);
-  const next = tags.map((tag) => {
-    if (normalizeTagValue(tag) === oldKey) return newName;
-    return tag;
+function rewriteTagIdsToSkillId(tags, skillId, fallbackOldNameKey = "") {
+  if (!Array.isArray(tags)) return { changed: false, next: [] };
+  const oldNameKey = normalizeTagValue(fallbackOldNameKey);
+  let changed = false;
+  const next = [];
+  const seen = new Set();
+  tags.forEach((tag) => {
+    const raw = String(tag || "").trim();
+    if (!raw) {
+      changed = true;
+      return;
+    }
+    const mapped = normalizeTagValue(raw) === oldNameKey ? String(skillId) : raw;
+    if (mapped !== raw) changed = true;
+    if (seen.has(mapped)) {
+      changed = true;
+      return;
+    }
+    seen.add(mapped);
+    next.push(mapped);
   });
-  const changed = next.some((tag, index) => tag !== tags[index]);
+  return { changed, next };
+}
+
+function removeTagIdFromList(tags, skillId, fallbackName = "") {
+  if (!Array.isArray(tags)) return { changed: false, next: [] };
+  const targetId = String(skillId || "").trim();
+  const fallbackKey = normalizeTagValue(fallbackName);
+  let changed = false;
+  const next = [];
+  const seen = new Set();
+  tags.forEach((tag) => {
+    const raw = String(tag || "").trim();
+    if (!raw) {
+      changed = true;
+      return;
+    }
+    const shouldRemove = raw === targetId || normalizeTagValue(raw) === fallbackKey;
+    if (shouldRemove) {
+      changed = true;
+      return;
+    }
+    if (seen.has(raw)) {
+      changed = true;
+      return;
+    }
+    seen.add(raw);
+    next.push(raw);
+  });
   return { changed, next };
 }
 
@@ -46,6 +87,7 @@ function normalizeProjectTechnologies(value) {
 
 async function propagateSkillMetadata(
   supabase,
+  skillId,
   oldName,
   newName,
   newCategory
@@ -55,15 +97,17 @@ async function propagateSkillMetadata(
   const nextCategory = String(newCategory || "").trim() || "other";
   if (!oldKey || !newLabel) return;
 
-  const [projectsRes, workRes, timelineRes] = await Promise.all([
+  const [projectsRes, workRes, timelineRes, blogRes] = await Promise.all([
     supabase.from("projects").select("id,technologies"),
     supabase.from("work_research_experience").select("id,tags"),
     supabase.from("education_timeline_courses").select("id,tags"),
+    supabase.from("blog_posts").select("id,tags"),
   ]);
 
   if (projectsRes.error) throw projectsRes.error;
   if (workRes.error) throw workRes.error;
   if (timelineRes.error) throw timelineRes.error;
+  if (blogRes.error) throw blogRes.error;
 
   const projectUpdates = (projectsRes.data || [])
     .map((project) => {
@@ -72,9 +116,11 @@ async function propagateSkillMetadata(
       const next = parsed.map((tech) => {
         if (!tech || typeof tech !== "object") return tech;
         const currentTitle = String(tech.title || tech.name || "").trim();
-        if (normalizeTagValue(currentTitle) !== oldKey) return tech;
+        const currentId = String(tech.id || tech.skill_id || "").trim();
+        if (currentId !== String(skillId) && normalizeTagValue(currentTitle) !== oldKey) return tech;
         const updated = {
           ...tech,
+          id: String(skillId),
           title: newLabel,
           category: nextCategory,
           ...(tech.name !== undefined ? { name: newLabel } : {}),
@@ -93,34 +139,109 @@ async function propagateSkillMetadata(
     })
     .filter(Boolean);
 
-  const shouldRename = oldKey !== normalizeTagValue(newLabel);
-  const workUpdates = shouldRename
-    ? (workRes.data || [])
+  const workUpdates = (workRes.data || [])
     .map((entry) => {
-      const { changed, next } = replaceTagInList(entry.tags, oldName, newLabel);
+      const { changed, next } = rewriteTagIdsToSkillId(entry.tags, skillId, oldName);
       if (!changed) return null;
       return supabase
         .from("work_research_experience")
         .update({ tags: next })
         .eq("id", entry.id);
     })
-    .filter(Boolean)
-    : [];
+    .filter(Boolean);
 
-  const timelineUpdates = shouldRename
-    ? (timelineRes.data || [])
+  const timelineUpdates = (timelineRes.data || [])
     .map((course) => {
-      const { changed, next } = replaceTagInList(course.tags, oldName, newLabel);
+      const { changed, next } = rewriteTagIdsToSkillId(course.tags, skillId, oldName);
       if (!changed) return null;
       return supabase
         .from("education_timeline_courses")
         .update({ tags: next })
         .eq("id", course.id);
     })
-    .filter(Boolean)
-    : [];
+    .filter(Boolean);
 
-  const results = await Promise.all([...projectUpdates, ...workUpdates, ...timelineUpdates]);
+  const blogUpdates = (blogRes.data || [])
+    .map((post) => {
+      const { changed, next } = rewriteTagIdsToSkillId(post.tags, skillId, oldName);
+      if (!changed) return null;
+      return supabase.from("blog_posts").update({ tags: next }).eq("id", post.id);
+    })
+    .filter(Boolean);
+
+  const results = await Promise.all([
+    ...projectUpdates,
+    ...workUpdates,
+    ...timelineUpdates,
+    ...blogUpdates,
+  ]);
+  const failed = results.find((result) => result?.error);
+  if (failed?.error) throw failed.error;
+}
+
+async function removeSkillReferencesOnDelete(supabase, skillId, skillName) {
+  const [projectsRes, workRes, timelineRes, blogRes] = await Promise.all([
+    supabase.from("projects").select("id,technologies"),
+    supabase.from("work_research_experience").select("id,tags"),
+    supabase.from("education_timeline_courses").select("id,tags"),
+    supabase.from("blog_posts").select("id,tags"),
+  ]);
+
+  if (projectsRes.error) throw projectsRes.error;
+  if (workRes.error) throw workRes.error;
+  if (timelineRes.error) throw timelineRes.error;
+  if (blogRes.error) throw blogRes.error;
+
+  const targetId = String(skillId || "").trim();
+  const targetNameKey = normalizeTagValue(skillName);
+
+  const projectUpdates = (projectsRes.data || [])
+    .map((project) => {
+      const parsed = normalizeProjectTechnologies(project.technologies);
+      let changed = false;
+      const next = parsed.filter((tech) => {
+        if (!tech || typeof tech !== "object") return false;
+        const techId = String(tech.id || tech.skill_id || "").trim();
+        const techNameKey = normalizeTagValue(tech.title || tech.name || "");
+        const shouldKeep = techId !== targetId && techNameKey !== targetNameKey;
+        if (!shouldKeep) changed = true;
+        return shouldKeep;
+      });
+      if (!changed) return null;
+      return supabase.from("projects").update({ technologies: next }).eq("id", project.id);
+    })
+    .filter(Boolean);
+
+  const workUpdates = (workRes.data || [])
+    .map((entry) => {
+      const { changed, next } = removeTagIdFromList(entry.tags, targetId, skillName);
+      if (!changed) return null;
+      return supabase.from("work_research_experience").update({ tags: next }).eq("id", entry.id);
+    })
+    .filter(Boolean);
+
+  const timelineUpdates = (timelineRes.data || [])
+    .map((course) => {
+      const { changed, next } = removeTagIdFromList(course.tags, targetId, skillName);
+      if (!changed) return null;
+      return supabase.from("education_timeline_courses").update({ tags: next }).eq("id", course.id);
+    })
+    .filter(Boolean);
+
+  const blogUpdates = (blogRes.data || [])
+    .map((post) => {
+      const { changed, next } = removeTagIdFromList(post.tags, targetId, skillName);
+      if (!changed) return null;
+      return supabase.from("blog_posts").update({ tags: next }).eq("id", post.id);
+    })
+    .filter(Boolean);
+
+  const results = await Promise.all([
+    ...projectUpdates,
+    ...workUpdates,
+    ...timelineUpdates,
+    ...blogUpdates,
+  ]);
   const failed = results.find((result) => result?.error);
   if (failed?.error) throw failed.error;
 }
@@ -231,14 +352,33 @@ export async function POST(req) {
         }, { status: 500 });
       }
       if (oldName && newName) {
-        await propagateSkillMetadata(supabase, oldName, newName, body.category);
+        await propagateSkillMetadata(supabase, body.id, oldName, newName, body.category);
       }
       return NextResponse.json({ success: true, message: "Data received!", data: body }, { status: 200 });
     } else if (body.type == "delete") {
+      if (!body.id) {
+        return NextResponse.json(
+          { success: false, message: "Skill id is required for delete" },
+          { status: 400 }
+        );
+      }
+      const { data: existingSkill, error: existingError } = await supabase
+        .from("skills")
+        .select("id,name")
+        .eq("id", body.id)
+        .single();
+      if (existingError || !existingSkill) {
+        return NextResponse.json(
+          { success: false, message: "Skill not found" },
+          { status: 404 }
+        );
+      }
+
+      await removeSkillReferencesOnDelete(supabase, existingSkill.id, existingSkill.name);
       const { error } = await supabase
         .from('skills')
         .delete()
-        .eq('name', body.name);
+        .eq('id', body.id);
 
       if (error) {
         console.error("Supabase error:", error);

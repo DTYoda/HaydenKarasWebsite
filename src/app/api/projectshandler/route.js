@@ -28,7 +28,7 @@ export async function POST(req) {
   try {
     // Use service role client for admin operations to bypass RLS
     const supabase = createServiceRoleClient();
-    const { byKey: skillCatalogByKey } = await getSkillCatalog(supabase);
+    const skillCatalog = await getSkillCatalog(supabase);
     
     // Log the incoming data for debugging
     if (body.type === "edit") {
@@ -43,7 +43,7 @@ export async function POST(req) {
     }
 
     if (body.type == "new") {
-      const sanitizedTech = sanitizeProjectTechnologies(body.technologies, skillCatalogByKey);
+      const sanitizedTech = sanitizeProjectTechnologies(body.technologies, skillCatalog);
       if (sanitizedTech.unknown.length > 0) {
         return NextResponse.json(
           {
@@ -73,7 +73,7 @@ export async function POST(req) {
       if (error) throw error;
       return NextResponse.json({ success: true, message: "Project created!", data }, { status: 200 });
     } else if (body.type == "edit") {
-      const sanitizedTech = sanitizeProjectTechnologies(body.technologies, skillCatalogByKey);
+      const sanitizedTech = sanitizeProjectTechnologies(body.technologies, skillCatalog);
       if (sanitizedTech.unknown.length > 0) {
         return NextResponse.json(
           {

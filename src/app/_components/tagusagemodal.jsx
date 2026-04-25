@@ -26,7 +26,15 @@ export default function TagUsageModal({ tagUsage, onClose }) {
     work = [],
     research = [],
     coursework = [],
+    blog_posts: blogPosts = [],
   } = tagUsage;
+  const countCards = [
+    { key: "projects", label: "Projects", value: Number(counts.projects || 0) },
+    { key: "work", label: "Work", value: Number(counts.work || 0) },
+    { key: "research", label: "Research", value: Number(counts.research || 0) },
+    { key: "coursework", label: "Coursework", value: Number(counts.coursework || 0) },
+    { key: "blog_posts", label: "Blog Posts", value: Number(counts.blog_posts || 0) },
+  ].filter((entry) => entry.value > 0);
 
   return (
     <div className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
@@ -52,24 +60,19 @@ export default function TagUsageModal({ tagUsage, onClose }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
-          <div className="rounded-lg border border-orange-500/25 bg-black/30 p-3 text-center">
-            <p className="text-xs text-gray-400">Projects</p>
-            <p className="text-xl font-bold text-orange-300">{counts.projects || 0}</p>
+        {countCards.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-5">
+            {countCards.map((entry) => (
+              <div
+                key={`count-${entry.key}`}
+                className="rounded-lg border border-orange-500/25 bg-black/30 p-3 text-center"
+              >
+                <p className="text-xs text-gray-400">{entry.label}</p>
+                <p className="text-xl font-bold text-orange-300">{entry.value}</p>
+              </div>
+            ))}
           </div>
-          <div className="rounded-lg border border-orange-500/25 bg-black/30 p-3 text-center">
-            <p className="text-xs text-gray-400">Work</p>
-            <p className="text-xl font-bold text-orange-300">{counts.work || 0}</p>
-          </div>
-          <div className="rounded-lg border border-orange-500/25 bg-black/30 p-3 text-center">
-            <p className="text-xs text-gray-400">Research</p>
-            <p className="text-xl font-bold text-orange-300">{counts.research || 0}</p>
-          </div>
-          <div className="rounded-lg border border-orange-500/25 bg-black/30 p-3 text-center">
-            <p className="text-xs text-gray-400">Coursework</p>
-            <p className="text-xl font-bold text-orange-300">{counts.coursework || 0}</p>
-          </div>
-        </div>
+        )}
 
         <Section
           title="Projects"
@@ -115,6 +118,21 @@ export default function TagUsageModal({ tagUsage, onClose }) {
             <li key={`course-${item.id}`}>
               <span className="font-medium">{item.title}</span>
               {item.term_label ? ` - ${item.term_label}` : ""}
+            </li>
+          )}
+        />
+
+        <Section
+          title="Blog Posts"
+          items={blogPosts}
+          renderItem={(item) => (
+            <li key={`blog-${item.id}`}>
+              <Link
+                href={`/blog/${item.slug}`}
+                className="text-orange-300 hover:text-orange-200 font-medium"
+              >
+                {item.title}
+              </Link>
             </li>
           )}
         />

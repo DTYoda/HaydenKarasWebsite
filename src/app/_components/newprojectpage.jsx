@@ -595,7 +595,10 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
             </div>
           )}
           {images.length > 0 ? (
-            <div className="glass rounded-2xl p-4 sm:p-6 overflow-hidden">
+            <div
+              data-tilt-card="off"
+              className="glass rounded-2xl p-4 sm:p-6 overflow-hidden"
+            >
               {/* Main Image */}
               <div className="relative mb-4 group">
                 <div className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] max-h-[800px] rounded-lg overflow-hidden">
@@ -667,7 +670,10 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
               )}
             </div>
           ) : (
-            <div className="text-center text-gray-400 py-12 glass rounded-2xl">
+            <div
+              data-tilt-card="off"
+              className="text-center text-gray-400 py-12 glass rounded-2xl"
+            >
               {isAuthenticated
                 ? "No images yet. Add your first image!"
                 : "No images available."}
@@ -678,7 +684,10 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
         {/* Skills & Technologies - Visual Section */}
         {(technicalTechnologies.length > 0 || coreTechnologies.length > 0) && (
           <div className="w-full max-w-7xl mb-12 fade-in">
-            <div className="glass rounded-2xl p-6 sm:p-8">
+            <div
+              data-tilt-card="off"
+              className="glass rounded-2xl p-6 sm:p-8"
+            >
               {coreTechnologies.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-sm uppercase tracking-wider text-orange-300 font-semibold mb-3">

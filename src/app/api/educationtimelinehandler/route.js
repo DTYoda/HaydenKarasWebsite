@@ -1,7 +1,7 @@
 import { createServiceRoleClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { getSkillCatalog, sanitizeTagSelection } from "@/lib/tag-catalog";
+import { getSkillCatalog, resolveTagLabels, sanitizeTagSelection } from "@/lib/tag-catalog";
 
 function normalizeList(value) {
   if (Array.isArray(value)) {
@@ -20,15 +20,20 @@ export async function GET() {
   try {
     // Use service role for reliable public content reads even if RLS policies lag behind schema changes.
     const supabase = createServiceRoleClient();
+    const skillCatalog = await getSkillCatalog(supabase);
     const { data, error } = await supabase
       .from("education_timeline_courses")
       .select("*")
-      .order("term_start", { ascending: false, nullsFirst: false })
       .order("display_order", { ascending: true })
       .order("course_name", { ascending: true });
 
     if (error) throw error;
-    return NextResponse.json({ success: true, data: data || [] }, { status: 200 });
+    const normalized = (data || []).map((course) => ({
+      ...course,
+      tag_ids: Array.isArray(course.tags) ? course.tags : [],
+      tags: resolveTagLabels(course.tags, skillCatalog.byId, skillCatalog.byKey),
+    }));
+    return NextResponse.json({ success: true, data: normalized }, { status: 200 });
   } catch (error) {
     console.error("Error fetching education timeline courses:", error);
     return NextResponse.json(
@@ -60,8 +65,8 @@ export async function POST(req) {
     }
 
     const supabase = createServiceRoleClient();
-    const { byKey: skillCatalogByKey } = await getSkillCatalog(supabase);
-    const normalizedTags = sanitizeTagSelection(body.tags, skillCatalogByKey);
+    const skillCatalog = await getSkillCatalog(supabase);
+    const normalizedTags = sanitizeTagSelection(body.tags, skillCatalog);
     if (normalizedTags.unknown.length > 0) {
       return NextResponse.json(
         {
@@ -75,15 +80,13 @@ export async function POST(req) {
     }
     const payload = {
       term_label: body.term_label || "",
-      term_start: body.term_start || null,
-      term_end: body.term_end || null,
       course_name: body.course_name || "",
       subtitle: body.subtitle || "",
       mastered_summary: body.mastered_summary || "",
       description: body.description || "",
       topics: normalizeList(body.topics),
       outcomes: normalizeList(body.outcomes),
-      tags: normalizedTags.tags,
+      tags: normalizedTags.tagIds,
       more_info_link: body.more_info_link || "",
       more_info_link_text: body.more_info_link_text || body.moreInfoLinkText || "",
       display_order: Number.isFinite(Number(body.display_order))

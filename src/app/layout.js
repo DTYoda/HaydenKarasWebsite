@@ -2,6 +2,7 @@ import "./globals.css";
 import AuthWrapper from "./_components/authwrapper";
 import AdminLogoutButton from "./_components/adminlogoutbutton";
 import AnimatedBulbs from "./_components/animatedbulbs";
+import CardTiltProvider from "./_components/cardtiltprovider";
 
 export const metadata = {
   title: "Hayden Karas",
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen h-fit w-full m-0 p-0 overflow-x-hidden">
         <AnimatedBulbs />
+        <CardTiltProvider />
         <AuthWrapper>
           {children}
           <AdminLogoutButton />

@@ -7,14 +7,6 @@ import AddButton from "./addbutton";
 import EditButton from "./editbutton";
 import DeleteButton from "./deletebutton";
 
-function formatTermRange(start, end) {
-  const format = (date) =>
-    new Date(date).toLocaleDateString("en-US", { month: "short", year: "numeric" });
-  if (start && end) return `${format(start)} - ${format(end)}`;
-  if (start) return format(start);
-  return "Term dates unavailable";
-}
-
 function asArray(value) {
   if (Array.isArray(value)) return value;
   return [];
@@ -56,8 +48,6 @@ export default function EducationTimeline({ onMutate }) {
 
   const timelineFields = [
     { name: "term_label", label: "Term Label", type: "text", required: true },
-    { name: "term_start", label: "Term Start", type: "date", required: false },
-    { name: "term_end", label: "Term End", type: "date", required: false },
     { name: "course_name", label: "Course Name", type: "text", required: true },
     { name: "subtitle", label: "Short Subtitle", type: "text", required: false },
     {
@@ -113,11 +103,8 @@ export default function EducationTimeline({ onMutate }) {
         return String(a.course_name || "").localeCompare(String(b.course_name || ""));
       });
 
-      const firstTerm = sorted.find((course) => course.term_start);
       return {
         termLabel,
-        termStart: firstTerm?.term_start || null,
-        termEnd: firstTerm?.term_end || null,
         courses: sorted,
       };
     });
@@ -157,9 +144,6 @@ export default function EducationTimeline({ onMutate }) {
                   <div className="mb-4">
                     <p className="text-xs uppercase tracking-[0.18em] text-orange-300 font-semibold">
                       {termGroup.termLabel}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {formatTermRange(termGroup.termStart, termGroup.termEnd)}
                     </p>
                   </div>
 

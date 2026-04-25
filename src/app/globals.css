@@ -133,11 +133,13 @@ h6 {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: perspective(1100px) translateY(calc(20px + var(--hover-lift-y, 0px)))
+      rotateX(var(--card-rotate-x, 0deg)) rotateY(var(--card-rotate-y, 0deg));
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: perspective(1100px) translateY(var(--hover-lift-y, 0px))
+      rotateX(var(--card-rotate-x, 0deg)) rotateY(var(--card-rotate-y, 0deg));
   }
 }
 
@@ -185,12 +187,15 @@ h6 {
 
 /* Hover lift effect - optimized with will-change */
 .hover-lift {
+  --hover-lift-y: 0px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transform: perspective(1100px) translateY(var(--hover-lift-y))
+    rotateX(var(--card-rotate-x, 0deg)) rotateY(var(--card-rotate-y, 0deg));
   will-change: transform;
 }
 
 .hover-lift:hover {
-  transform: translateY(-5px);
+  --hover-lift-y: -5px;
   box-shadow: 0 10px 30px rgba(249, 115, 22, 0.2);
 }
 
@@ -199,15 +204,71 @@ h6 {
   will-change: auto;
 }
 
+/* Reusable 3D card tilt + cursor glow */
+.interactive-card-tilt {
+  --card-rotate-x: 0deg;
+  --card-rotate-y: 0deg;
+  --card-glow-x: 50%;
+  --card-glow-y: 50%;
+  --card-glow-opacity: 0;
+  --hover-lift-y: 0px;
+  position: relative;
+  isolation: isolate;
+  transform-style: preserve-3d;
+  transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+  transform: perspective(1100px) translateY(var(--hover-lift-y))
+    rotateX(var(--card-rotate-x)) rotateY(var(--card-rotate-y));
+  will-change: transform;
+}
+
+.interactive-card-tilt:hover,
+.interactive-card-tilt:focus-within {
+  border-color: rgba(251, 146, 60, 0.55);
+  box-shadow: 0 0 0 1px rgba(251, 146, 60, 0.5),
+    0 14px 34px rgba(249, 115, 22, 0.2), 0 0 28px rgba(251, 146, 60, 0.22);
+}
+
+.interactive-card-tilt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  opacity: var(--card-glow-opacity);
+  background: radial-gradient(
+    circle 150px at var(--card-glow-x) var(--card-glow-y),
+    rgba(251, 146, 60, 0.12) 0%,
+    rgba(251, 146, 60, 0.04) 35%,
+    transparent 70%
+  );
+  transition: opacity 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive-card-tilt,
+  .hover-lift {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .interactive-card-tilt::after {
+    display: none;
+  }
+}
+
 /* Float in animation */
 @keyframes floatIn {
   from {
     opacity: 0;
-    transform: translateY(30px) scale(0.9);
+    transform: perspective(1100px) translateY(calc(30px + var(--hover-lift-y, 0px)))
+      scale(0.9) rotateX(var(--card-rotate-x, 0deg))
+      rotateY(var(--card-rotate-y, 0deg));
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: perspective(1100px) translateY(var(--hover-lift-y, 0px)) scale(1)
+      rotateX(var(--card-rotate-x, 0deg)) rotateY(var(--card-rotate-y, 0deg));
   }
 }
 

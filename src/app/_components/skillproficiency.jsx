@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import StandardTag from "./standardtag";
-import { buildTagSummary } from "@/lib/tags";
+import { buildTagStatChips } from "@/lib/tags";
 
-function buildUsageSummary(usage) {
-  return buildTagSummary({
+function getUsageChips(usage) {
+  return buildTagStatChips({
     yearsExperience: null,
     counts: usage?.counts,
   });
@@ -59,8 +59,17 @@ export default function SkillProficiency({ skill, index, usage, onTagClick }) {
           ) : null}
         </div>
 
-        {buildUsageSummary(usage) ? (
-          <p className="text-xs text-gray-400 mt-3">{buildUsageSummary(usage)}</p>
+        {getUsageChips(usage).length > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-1">
+            {getUsageChips(usage).map((chip) => (
+              <span
+                key={`${skill.name}-${chip}`}
+                className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-gray-300"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
         ) : null}
 
         {isExpanded && (

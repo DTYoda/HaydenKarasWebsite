@@ -16,15 +16,40 @@ export default async function BlogPage() {
 
   let posts = [];
   try {
-    const { data, error } = await supabase
-      .from("blog_posts")
-      .select("*")
-      .eq("status", "published")
-      .order("published_at", { ascending: false, nullsFirst: false })
-      .order("created_at", { ascending: false });
+    const [{ data, error }, { data: skillsData, error: skillsError }] = await Promise.all([
+      supabase
+        .from("blog_posts")
+        .select("*")
+        .eq("status", "published")
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false }),
+      supabase.from("skills").select("id,name"),
+    ]);
 
-    if (!error && data) {
-      posts = data;
+    if (!error && !skillsError && data) {
+      const skillById = new Map(
+        (skillsData || [])
+          .map((skill) => [String(skill.id || "").trim(), String(skill.name || "").trim()])
+          .filter(([id, name]) => id && name)
+      );
+      const skillByNameKey = new Map(
+        (skillsData || [])
+          .map((skill) => [
+            String(skill.name || "").trim().toLowerCase(),
+            String(skill.name || "").trim(),
+          ])
+          .filter(([key, name]) => key && name)
+      );
+      posts = data.map((post) => {
+        const tagIds = Array.isArray(post.tags) ? post.tags.map((tag) => String(tag || "").trim()) : [];
+        return {
+          ...post,
+          tag_ids: tagIds,
+          tags: tagIds
+            .map((id) => skillById.get(id) || skillByNameKey.get(id.toLowerCase()))
+            .filter(Boolean),
+        };
+      });
     }
   } catch (error) {
     console.error("Error fetching blog posts:", error);

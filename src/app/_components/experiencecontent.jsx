@@ -9,7 +9,6 @@ import TagUsageModal from "./tagusagemodal";
 import { useTagUsage } from "./usetagusage";
 import StandardTag from "./standardtag";
 import {
-  buildTagSummary,
   getTagMeta,
   getTotalAppearances,
   PROJECT_CATEGORY_LABELS,
@@ -25,6 +24,26 @@ export default function ExperienceContent() {
   const [loadingTimeline, setLoadingTimeline] = useState(true);
   const [selectedTagUsage, setSelectedTagUsage] = useState(null);
   const { getUsage, loadTagUsage } = useTagUsage();
+
+  const buildExperienceStatChips = (yearsExperience, counts) => {
+    const chips = [];
+    const years = Number(yearsExperience);
+    if (Number.isFinite(years) && years > 0) {
+      chips.push(`${years}y`);
+    }
+
+    const projects = Number(counts?.projects || 0);
+    if (projects > 0) {
+      chips.push(`${projects} proj`);
+    }
+
+    const courses = Number(counts?.coursework || 0);
+    if (courses > 0) {
+      chips.push(`${courses} courses`);
+    }
+
+    return chips;
+  };
 
   const fetchData = async () => {
     try {
@@ -127,10 +146,7 @@ export default function ExperienceContent() {
         displayLabel: tagMeta.label,
         usage,
         totalAppearances,
-        summary: buildTagSummary({
-          yearsExperience: skill.years_experience,
-          counts: usage?.counts,
-        }),
+        statChips: buildExperienceStatChips(skill.years_experience, usage?.counts),
         category,
       });
     });
@@ -152,10 +168,10 @@ export default function ExperienceContent() {
   const tagOptions = useMemo(() => {
     return (skills || [])
       .map((skill) => ({
-        value: String(skill.name || "").trim(),
+        value: String(skill.id || "").trim(),
         label: String(skill.name || "").trim(),
       }))
-      .filter((option) => option.value)
+      .filter((option) => option.value && option.label)
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [skills]);
 
@@ -270,8 +286,17 @@ export default function ExperienceContent() {
                           if (usage) setSelectedTagUsage(usage);
                         }}
                       />
-                      {entry.summary ? (
-                        <p className="text-[11px] text-gray-400 mt-1">{entry.summary}</p>
+                      {entry.statChips?.length ? (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {entry.statChips.map((chip) => (
+                            <span
+                              key={`${entry.skill.id || entry.displayLabel}-${chip}`}
+                              className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-gray-300"
+                            >
+                              {chip}
+                            </span>
+                          ))}
+                        </div>
                       ) : null}
                     </div>
                   ))}

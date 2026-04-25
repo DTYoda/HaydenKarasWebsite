@@ -11,28 +11,7 @@ import { normalizeTagList } from "@/lib/tags";
 import { useTagUsage } from "./usetagusage";
 import TagUsageModal from "./tagusagemodal";
 
-function formatMonthYear(value) {
-  if (!value) return "";
-  return new Date(value).toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatWorkDateRange(item) {
-  const start = formatMonthYear(item.start_date);
-  const end = item.is_current ? "Present" : formatMonthYear(item.end_date);
-  if (!start && !end) return "Dates unavailable";
-  if (!start) return end || "Dates unavailable";
-  if (!end) return start;
-  return `${start} - ${end}`;
-}
-
 function formatEducationDate(item) {
-  const start = formatMonthYear(item.term_start);
-  const end = formatMonthYear(item.term_end);
-  if (start && end) return `${start} - ${end}`;
-  if (start) return start;
   return item.term_label || "Academic term";
 }
 
@@ -46,6 +25,13 @@ function formatCenterLabel(item) {
   return "";
 }
 
+function getPreviewSummary(item) {
+  const preferred = String(item.masteredSummary || item.summary || "").trim();
+  if (!preferred) return "Click to expand for full details.";
+  const firstSentence = preferred.match(/.*?[.!?](\s|$)/);
+  return (firstSentence ? firstSentence[0] : preferred).trim();
+}
+
 export default function MasterTimeline({
   workResearch = [],
   timelineCourses = [],
@@ -54,8 +40,27 @@ export default function MasterTimeline({
   loading = false,
   onMutate,
 }) {
+  const TERM_SEASON_RANK = {
+    spring: 1,
+    summer: 2,
+    fall: 3,
+  };
+
+  const getTermSortValue = (label) => {
+    const normalized = String(label || "").trim().toLowerCase();
+    const match = normalized.match(/^(spring|summer|fall)\s+(\d{4})$/);
+    if (!match) return 0;
+    const season = match[1];
+    const year = Number(match[2]);
+    if (!Number.isFinite(year)) return 0;
+    return year * 10 + (TERM_SEASON_RANK[season] || 0);
+  };
+
   const { isAuthenticated } = useAuth();
   const [selectedTagUsage, setSelectedTagUsage] = useState(null);
+  const [isAllExpanded, setIsAllExpanded] = useState(false);
+  const [expandedItemIds, setExpandedItemIds] = useState(() => new Set());
+  const [collapsedItemIds, setCollapsedItemIds] = useState(() => new Set());
   const { getUsage, loadTagUsage } = useTagUsage();
   const {
     openEditModal: openWorkResearchEdit,
@@ -81,18 +86,7 @@ export default function MasterTimeline({
         { value: "research", label: "Research" },
       ],
     },
-    { name: "start_date", label: "Start Date", type: "date", required: false },
-    { name: "end_date", label: "End Date", type: "date", required: false },
-    {
-      name: "is_current",
-      label: "Current Role (true/false)",
-      type: "select",
-      required: false,
-      options: [
-        { value: "false", label: "No" },
-        { value: "true", label: "Yes" },
-      ],
-    },
+    { name: "term_label", label: "Term Label (e.g. Fall 2025)", type: "text", required: true },
     {
       name: "summary",
       label: "Summary",
@@ -121,8 +115,6 @@ export default function MasterTimeline({
 
   const educationTimelineFields = [
     { name: "term_label", label: "Term Label", type: "text", required: true },
-    { name: "term_start", label: "Term Start", type: "date", required: false },
-    { name: "term_end", label: "Term End", type: "date", required: false },
     { name: "course_name", label: "Course Name", type: "text", required: true },
     { name: "subtitle", label: "School / Program", type: "text", required: false },
     {
@@ -169,85 +161,23 @@ export default function MasterTimeline({
     { name: "display_order", label: "Display Order", type: "number", required: false },
   ];
 
-  const termBuckets = useMemo(() => {
-    const grouped = {};
-    timelineCourses.forEach((course) => {
-      const label = String(course.term_label || "Academic term").trim() || "Academic term";
-      if (!grouped[label]) {
-        grouped[label] = {
-          label,
-          termStart: null,
-          termEnd: null,
-        };
-      }
-      if (course.term_start) {
-        const ts = new Date(course.term_start).getTime();
-        if (!Number.isNaN(ts)) {
-          grouped[label].termStart = grouped[label].termStart
-            ? Math.min(grouped[label].termStart, ts)
-            : ts;
-        }
-      }
-      if (course.term_end) {
-        const ts = new Date(course.term_end).getTime();
-        if (!Number.isNaN(ts)) {
-          grouped[label].termEnd = grouped[label].termEnd
-            ? Math.max(grouped[label].termEnd, ts)
-            : ts;
-        }
-      }
-    });
-
-    return Object.values(grouped);
-  }, [timelineCourses]);
-
-  const deriveSeasonTerm = (value) => {
-    if (!value) return "Undated";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "Undated";
-    const month = date.getMonth();
-    const year = date.getFullYear();
-    if (month >= 0 && month <= 4) return `Spring ${year}`;
-    if (month >= 5 && month <= 7) return `Summer ${year}`;
-    return `Fall ${year}`;
-  };
-
-  const getTermForDate = (value) => {
-    if (!value) return { label: "Undated", sortDate: 0 };
-    const target = new Date(value).getTime();
-    if (Number.isNaN(target)) return { label: "Undated", sortDate: 0 };
-
-    const matched = termBuckets.find((term) => {
-      if (!term.termStart || !term.termEnd) return false;
-      return target >= term.termStart && target <= term.termEnd;
-    });
-
-    if (matched) {
-      return {
-        label: matched.label,
-        sortDate: matched.termStart || target,
-      };
-    }
-
-    return {
-      label: deriveSeasonTerm(value),
-      sortDate: target,
-    };
-  };
-
   const timelineItems = useMemo(() => {
     const workItems = workResearch.map((item) => ({
       ...(() => {
-        const term = getTermForDate(item.start_date);
+        const termLabel = String(item.term_label || "").trim() || "Undated";
         return {
-          termLabel: term.label,
-          termSortDate: term.sortDate,
+          termLabel,
+          termSortDate: getTermSortValue(termLabel),
         };
       })(),
       id: `work-${item.id}`,
       rawId: item.id,
       type: item.type === "research" ? "Research" : "Work",
-      sortDate: item.start_date ? new Date(item.start_date).getTime() : 0,
+      sortDate: (() => {
+        const termLabel = String(item.term_label || "").trim() || "Undated";
+        return getTermSortValue(termLabel);
+      })(),
+      displayOrder: Number.isFinite(Number(item.display_order)) ? Number(item.display_order) : 100,
       dateLabel: "",
       title: item.title,
       subtitle: item.organization,
@@ -261,15 +191,21 @@ export default function MasterTimeline({
     }));
 
     const educationItems = timelineCourses.map((item) => ({
+      ...(() => {
+        const termLabel = String(item.term_label || "").trim() || "Academic term";
+        return {
+          termLabel,
+          termSortDate: getTermSortValue(termLabel),
+        };
+      })(),
       id: `edu-${item.id}`,
       rawId: item.id,
       type: "Education",
-      sortDate: item.term_start ? new Date(item.term_start).getTime() : 0,
-      termSortDate: item.term_start ? new Date(item.term_start).getTime() : 0,
+      sortDate: getTermSortValue(item.term_label),
+      displayOrder: Number.isFinite(Number(item.display_order)) ? Number(item.display_order) : 100,
       dateLabel: formatEducationDate(item),
       title: item.course_name,
       subtitle: item.subtitle || "Coursework",
-      termLabel: item.term_label || "Academic term",
       masteredSummary: item.mastered_summary || "",
       summary: item.description || "",
       bullets: normalizedBulletList(item.outcomes),
@@ -281,18 +217,16 @@ export default function MasterTimeline({
     }));
 
     const sortedItems = [...workItems, ...educationItems].sort((a, b) => {
-      const termDelta = (b.termSortDate || 0) - (a.termSortDate || 0);
-      if (termDelta !== 0) return termDelta;
+      // Always keep newest items first, regardless of type.
+      const dateDelta = (b.sortDate || 0) - (a.sortDate || 0);
+      if (dateDelta !== 0) return dateDelta;
 
-      const priority = (item) => {
-        if (item.type === "Work") return 0;
-        if (item.type === "Research") return 1;
-        return 2;
-      };
-      const priorityDelta = priority(a) - priority(b);
-      if (priorityDelta !== 0) return priorityDelta;
+      // If dates are equal/missing, use explicit display order.
+      const orderDelta = (a.displayOrder || 100) - (b.displayOrder || 100);
+      if (orderDelta !== 0) return orderDelta;
 
-      return (b.sortDate || 0) - (a.sortDate || 0);
+      // Final stable tie-breaker for deterministic rendering.
+      return String(a.title || "").localeCompare(String(b.title || ""));
     });
 
     let previousTerm = "";
@@ -335,9 +269,12 @@ export default function MasterTimeline({
       {
         ...item,
         experience_type: item.type || "work",
-        is_current: item.is_current ? "true" : "false",
         highlights: Array.isArray(item.highlights) ? item.highlights.join("\n") : "",
-        tags: Array.isArray(item.tags) ? item.tags : [],
+        tags: Array.isArray(item.tag_ids)
+          ? item.tag_ids
+          : Array.isArray(item.tags)
+          ? item.tags
+          : [],
       },
       workResearchFields
     );
@@ -353,7 +290,11 @@ export default function MasterTimeline({
         ...item,
         topics: Array.isArray(item.topics) ? item.topics.join("\n") : "",
         outcomes: Array.isArray(item.outcomes) ? item.outcomes.join("\n") : "",
-        tags: Array.isArray(item.tags) ? item.tags : [],
+        tags: Array.isArray(item.tag_ids)
+          ? item.tag_ids
+          : Array.isArray(item.tags)
+          ? item.tags
+          : [],
       },
       educationTimelineFields
     );
@@ -363,6 +304,37 @@ export default function MasterTimeline({
     return <p className="text-center text-gray-400">Loading timeline...</p>;
   }
 
+  const toggleItemExpansion = (itemId) => {
+    if (isAllExpanded) {
+      setCollapsedItemIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(itemId)) {
+          next.delete(itemId);
+        } else {
+          next.add(itemId);
+        }
+        return next;
+      });
+      return;
+    }
+
+    setExpandedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  };
+
+  const toggleExpandAll = () => {
+    setIsAllExpanded((prev) => !prev);
+    setExpandedItemIds(new Set());
+    setCollapsedItemIds(new Set());
+  };
+
   return (
     <>
       {selectedTagUsage && (
@@ -371,12 +343,21 @@ export default function MasterTimeline({
       {WorkResearchEditModal}
       {TimelineEditModal}
 
-      {isAuthenticated && (
-        <div className="flex flex-wrap justify-end gap-3 mb-6">
+      <div className="flex flex-wrap justify-end gap-3 mb-6">
+        <button
+          type="button"
+          onClick={toggleExpandAll}
+          className="rounded-lg border border-orange-500/45 bg-orange-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-orange-200 transition-all duration-200 hover:bg-orange-500/20"
+        >
+          {isAllExpanded ? "Collapse All" : "Expand All"}
+        </button>
+        {isAuthenticated && (
+          <>
           <AddButton onClick={() => openWorkEditor(null)} label="Add Work/Research" />
           <AddButton onClick={() => openEducationEditor(null)} label="Add Education" />
-        </div>
-      )}
+          </>
+        )}
+      </div>
 
       {timelineItems.length === 0 ? (
         <p className="text-center text-gray-400">
@@ -403,10 +384,25 @@ export default function MasterTimeline({
                 item.editType === "workresearch"
                   ? handleWorkResearchDelete(item.rawId, item.title)
                   : handleTimelineDelete(item.rawId, item.title);
+              const isExpanded = isAllExpanded
+                ? !collapsedItemIds.has(item.id)
+                : expandedItemIds.has(item.id);
+              const previewSummary = getPreviewSummary(item);
 
               return (
                 <div key={item.id} className="relative">
-                  <article className="relative grid grid-cols-1 md:grid-cols-[1fr_40px_1fr] gap-4 items-start">
+                  <article
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleItemExpansion(item.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        toggleItemExpansion(item.id);
+                      }
+                    }}
+                    className="relative grid grid-cols-1 md:grid-cols-[1fr_40px_1fr] gap-4 items-start cursor-pointer"
+                  >
                     <div
                       className={`glass rounded-xl border-2 p-4 sm:p-5 md:text-right ${
                         item.type === "Education"
@@ -431,7 +427,7 @@ export default function MasterTimeline({
                         {item.title}
                       </h3>
                       <p className="text-sm text-gray-300 mt-1">{item.subtitle}</p>
-                      {item.tags.length > 0 && (
+                      {isExpanded && item.tags.length > 0 && (
                         <div className="mt-4 flex flex-wrap gap-2 md:justify-end">
                           {item.tags.map((tag, index) => (
                             <StandardTag
@@ -439,7 +435,8 @@ export default function MasterTimeline({
                               label={tag}
                               category={tagCategoryByKey[String(tag || "").trim().toLowerCase()] || "other"}
                               title={`${item.title} tag`}
-                              onClick={async () => {
+                              onClick={async (event) => {
+                                event.stopPropagation();
                                 const usage = (await loadTagUsage(tag)) || getUsage(tag);
                                 if (usage) setSelectedTagUsage(usage);
                               }}
@@ -471,34 +468,56 @@ export default function MasterTimeline({
                     >
                       {isAuthenticated && (
                         <>
-                          <EditButton onClick={onEdit} className="top-2 right-2" />
-                          <DeleteButton onClick={onDelete} className="top-2 left-2" />
+                          <EditButton
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onEdit();
+                            }}
+                            className="top-2 right-2"
+                          />
+                          <DeleteButton
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onDelete();
+                            }}
+                            className="top-2 left-2"
+                          />
                         </>
                       )}
                       <div className="pr-8 pl-8 sm:pl-10">
-                        {item.masteredSummary && (
-                          <p className="text-sm text-orange-200">{item.masteredSummary}</p>
+                        {!isExpanded ? (
+                          <p className="text-sm text-gray-300">{previewSummary}</p>
+                        ) : (
+                          <>
+                            {item.masteredSummary && (
+                              <p className="text-sm text-orange-200">{item.masteredSummary}</p>
+                            )}
+                            {item.summary && (
+                              <p className="text-sm text-gray-300 mt-3">{item.summary}</p>
+                            )}
+                            {item.bullets.length > 0 && (
+                              <ul className="mt-3 space-y-1 text-sm text-gray-200">
+                                {item.bullets.map((bullet, index) => (
+                                  <li key={`${item.id}-${index}`}>- {bullet}</li>
+                                ))}
+                              </ul>
+                            )}
+                            {item.link && (
+                              <a
+                                href={item.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(event) => event.stopPropagation()}
+                                className="inline-flex mt-3 text-sm font-semibold text-orange-400 hover:text-orange-300"
+                              >
+                                {item.linkText || "Learn more"} {"->"}
+                              </a>
+                            )}
+                          </>
                         )}
-                        {item.summary && (
-                          <p className="text-sm text-gray-300 mt-3">{item.summary}</p>
-                        )}
-                        {item.bullets.length > 0 && (
-                          <ul className="mt-3 space-y-1 text-sm text-gray-200">
-                            {item.bullets.map((bullet, index) => (
-                              <li key={`${item.id}-${index}`}>- {bullet}</li>
-                            ))}
-                          </ul>
-                        )}
-                        {item.link && (
-                          <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex mt-3 text-sm font-semibold text-orange-400 hover:text-orange-300"
-                          >
-                            {item.linkText || "Learn more"} {"->"}
-                          </a>
-                        )}
+                        <p className="mt-3 text-[11px] uppercase tracking-wider text-gray-500">
+                          {isExpanded ? "Click to collapse" : "Click to expand"}
+                        </p>
                       </div>
                     </div>
                   </article>

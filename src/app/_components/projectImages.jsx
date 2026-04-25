@@ -33,7 +33,10 @@ export default function ProjectImages({ images, onDelete = null }) {
           </div>
         )}
         <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition duration-300"></div>
-        <div className="relative glass rounded-2xl p-2 sm:p-4 overflow-hidden w-full">
+        <div
+          data-tilt-card="off"
+          className="relative glass rounded-2xl p-2 sm:p-4 overflow-hidden w-full"
+        >
           <div className="flex justify-center items-center h-[40vh] sm:h-[50vh] md:h-[60vh] lg:h-[70vh] max-h-[800px]">
             <Image
               width={1200}

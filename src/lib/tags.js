@@ -122,3 +122,23 @@ export function buildTagSummary({ yearsExperience, counts }) {
 
   return parts.join(" • ");
 }
+
+export function buildTagStatChips({ yearsExperience, counts }) {
+  const chips = [];
+  const years = Number(yearsExperience);
+  if (Number.isFinite(years) && years > 0) chips.push(`${years}y`);
+
+  const mapping = [
+    ["projects", "proj"],
+    ["work", "work"],
+    ["research", "research"],
+    ["coursework", "courses"],
+  ];
+
+  mapping.forEach(([key, label]) => {
+    const value = Number(counts?.[key] || 0);
+    if (value > 0) chips.push(`${value} ${label}`);
+  });
+
+  return chips;
+}

@@ -1,4 +1,10 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import StandardTag from "./standardtag";
+import TagUsageModal from "./tagusagemodal";
+import { useTagUsage } from "./usetagusage";
 
 function EyeIcon({ className = "w-3.5 h-3.5" }) {
   return (
@@ -39,6 +45,18 @@ function formatDate(value) {
 }
 
 export default function BlogList({ posts }) {
+  const [selectedTagUsage, setSelectedTagUsage] = useState(null);
+  const { getUsage, loadTagUsage } = useTagUsage();
+
+  const normalizedPosts = useMemo(() => {
+    return (posts || []).map((post) => ({
+      ...post,
+      tags: Array.isArray(post.tags)
+        ? post.tags.map((tag) => String(tag || "").trim()).filter(Boolean)
+        : [],
+    }));
+  }, [posts]);
+
   if (!posts || posts.length === 0) {
     return (
       <div className="glass rounded-2xl border border-orange-500/20 p-8 text-center text-gray-400">
@@ -48,12 +66,16 @@ export default function BlogList({ posts }) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {posts.map((post) => (
+    <>
+      {selectedTagUsage && (
+        <TagUsageModal tagUsage={selectedTagUsage} onClose={() => setSelectedTagUsage(null)} />
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {normalizedPosts.map((post) => (
         <Link
           key={post.id}
           href={`/blog/${post.slug}`}
-          className="group block glass rounded-2xl border border-orange-500/20 p-6 hover:border-orange-500/50 hover:-translate-y-1 transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400"
+          className="group block glass rounded-2xl border border-orange-500/20 p-6 hover-lift hover:border-orange-500/50 transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400"
         >
           {post.cover_image_url && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -73,12 +95,19 @@ export default function BlogList({ posts }) {
           {Array.isArray(post.tags) && post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
               {post.tags.map((tag) => (
-                <span
+                <StandardTag
                   key={`${post.id}-${tag}`}
-                  className="text-xs px-2 py-1 rounded-md bg-orange-500/10 border border-orange-500/20 text-orange-300"
-                >
-                  {tag}
-                </span>
+                  label={tag}
+                  category={getUsage(tag)?.category || "other"}
+                  onClick={async (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const usage = (await loadTagUsage(tag)) || getUsage(tag);
+                    if (usage) {
+                      setSelectedTagUsage(usage);
+                    }
+                  }}
+                />
               ))}
             </div>
           )}
@@ -94,6 +123,7 @@ export default function BlogList({ posts }) {
           </div>
         </Link>
       ))}
-    </div>
+      </div>
+    </>
   );
 }
