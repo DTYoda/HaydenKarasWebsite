@@ -66,8 +66,11 @@ export async function GET(req) {
     const limit = Number(searchParams.get("limit") || 100);
     const safeLimit = Number.isNaN(limit) ? 100 : Math.min(Math.max(limit, 1), 200);
     const isAdmin = await isAdminAuthenticated();
-
-    const supabase = createServerClient();
+    // Admin draft reads must bypass public RLS policies.
+    const useAdminReadClient = isAdmin && (includeDrafts || Boolean(slug));
+    const supabase = useAdminReadClient
+      ? createServiceRoleClient()
+      : createServerClient();
     const skillCatalog = await getSkillCatalog(supabase);
     const baseSelect = "id,title,slug,excerpt,content_json,content_html,cover_image_url,tags,status,published_at,created_at,updated_at,views_count,likes_count";
 

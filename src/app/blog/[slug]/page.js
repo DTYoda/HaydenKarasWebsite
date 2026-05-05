@@ -3,15 +3,15 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/app/_components/navigation";
 import BlogPostView from "@/app/_components/blogpostview";
-import { createServerClient } from "@/lib/supabase";
+import { createServerClient, createServiceRoleClient } from "@/lib/supabase";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 async function fetchPostBySlug(slug) {
-  const supabase = createServerClient();
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get("admin-auth")?.value === "authenticated";
+  const supabase = isAdmin ? createServiceRoleClient() : createServerClient();
 
   let query = supabase.from("blog_posts").select("*").eq("slug", slug).limit(1);
   if (!isAdmin) {
