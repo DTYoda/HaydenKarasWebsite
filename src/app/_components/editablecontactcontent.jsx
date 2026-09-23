@@ -6,84 +6,61 @@ import { useAuth } from "./authprovider";
 import { useEditable } from "./useeditable";
 import EditButton from "./editbutton";
 
-export default function EditableContactContent() {
+export default function EditableContactContent({ initialData }) {
   const { isAuthenticated } = useAuth();
-  const [availableFor, setAvailableFor] = useState([
-    "Internships and full-time opportunities",
-    "Game development projects",
-    "Web development collaborations",
-    "Research opportunities",
-    "Open-source contributions",
-  ]);
-  const [links, setLinks] = useState([
-    { url: "https://www.linkedin.com/in/haydenkaras/", label: "LinkedIn", icon: "💼" },
-    { url: "https://github.com/DTYoda", label: "GitHub", icon: "💻" },
-    { url: "/resume.pdf", label: "Resume", icon: "📄" },
-  ]);
-  const [email, setEmail] = useState("hkaras1121@gmail.com");
-  const { openEditModal, EditModalComponent } = useEditable("pagecontent", () => {
-    fetchContent();
-  });
+  const [content, setContent] = useState(initialData || {});
+  const { openEditModal, EditModalComponent } = useEditable(
+    "pagecontent",
+    (result) => {
+      const item = result?.data;
+      if (!item?.key) return;
+      setContent((prev) => {
+        const next = { ...prev };
+        if (item.key === "contact-content-availableFor") {
+          try {
+            next.availableFor = JSON.parse(item.content);
+          } catch {
+            next.availableFor = [];
+          }
+        } else if (item.key === "contact-content-links") {
+          try {
+            next.links = JSON.parse(item.content);
+          } catch {
+            next.links = [];
+          }
+        } else if (item.key === "contact-content-email") {
+          next.email = item.content;
+        }
+        return next;
+      });
+    }
+  );
 
   useEffect(() => {
-    fetchContent();
-  }, []);
+    setContent(initialData || {});
+  }, [initialData]);
 
-  const fetchContent = async () => {
-    try {
-      const response = await fetch("/api/pagecontent?page=contact&section=content");
-      if (response.ok) {
-        const data = await response.json();
-        if (data.data && data.data.length > 0) {
-          const availableForData = data.data.find(
-            (c) => c.key === "contact-content-availableFor"
-          );
-          const linksData = data.data.find(
-            (c) => c.key === "contact-content-links"
-          );
-          const emailData = data.data.find(
-            (c) => c.key === "contact-content-email"
-          );
-
-          if (availableForData) {
-            try {
-              setAvailableFor(JSON.parse(availableForData.content));
-            } catch (e) {
-              console.error("Error parsing availableFor:", e);
-            }
-          }
-          if (linksData) {
-            try {
-              setLinks(JSON.parse(linksData.content));
-            } catch (e) {
-              console.error("Error parsing links:", e);
-            }
-          }
-          if (emailData) {
-            setEmail(emailData.content);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching contact content:", error);
-    }
-  };
+  const availableFor = Array.isArray(content.availableFor) ? content.availableFor : [];
+  const links = Array.isArray(content.links) ? content.links : [];
+  const email = content.email || "";
 
   const availableForFields = [
     {
       name: "content",
-      label: "Available For (JSON array of strings)",
-      type: "textarea",
+      label: "Available For",
+      type: "stringlist",
       required: true,
+      helpText: "One item per line",
     },
   ];
 
   const linksFields = [
     {
       name: "content",
-      label: "Links (JSON array of {url, label, icon} objects)",
-      type: "textarea",
+      label: "Links",
+      type: "pairlist",
       required: true,
+      helpText: "One per line: url | label",
     },
   ];
 
@@ -91,32 +68,39 @@ export default function EditableContactContent() {
     { name: "content", label: "Email", type: "text", required: true },
   ];
 
+  const displayLinks = links.map((link) => {
+    if (Array.isArray(link)) {
+      return { url: link[0], label: link[1], icon: "🔗" };
+    }
+    return {
+      url: link.url || link.link || "",
+      label: link.label || link.title || "",
+      icon: link.icon || "🔗",
+    };
+  });
+
   return (
     <>
       <section className="w-full mb-20 fade-in relative">
-        {isAuthenticated && (
-          <div className="absolute top-0 right-0 flex gap-2 z-10">
-            <EditButton
-              onClick={() =>
-                openEditModal(
-                  {
-                    key: "contact-content-availableFor",
-                    page: "contact",
-                    section: "content",
-                    content: JSON.stringify(availableFor, null, 2),
-                    type: "json",
-                  },
-                  availableForFields
-                )
-              }
-              className="bg-blue-500 hover:bg-blue-600"
-            />
-          </div>
-        )}
-
         <div className="glass rounded-2xl p-8 border border-orange-500/20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
+            <div className="relative">
+              {isAuthenticated && (
+                <EditButton
+                  onClick={() =>
+                    openEditModal(
+                      {
+                        key: "contact-content-availableFor",
+                        page: "contact",
+                        section: "content",
+                        content: JSON.stringify(availableFor),
+                        type: "json",
+                      },
+                      availableForFields
+                    )
+                  }
+                />
+              )}
               <h3 className="text-xl font-bold text-gray-200 mb-4">I'm Available For</h3>
               <ul className="space-y-3">
                 {availableFor.map((item, index) => (
@@ -138,13 +122,14 @@ export default function EditableContactContent() {
                           key: "contact-content-links",
                           page: "contact",
                           section: "content",
-                          content: JSON.stringify(links, null, 2),
+                          content: JSON.stringify(
+                            displayLinks.map((link) => [link.url, link.label])
+                          ),
                           type: "json",
                         },
                         linksFields
                       )
                     }
-                    className="bg-blue-500 hover:bg-blue-600"
                   />
                   <EditButton
                     onClick={() =>
@@ -159,13 +144,12 @@ export default function EditableContactContent() {
                         emailFields
                       )
                     }
-                    className="bg-blue-500 hover:bg-blue-600"
                   />
                 </div>
               )}
               <h3 className="text-xl font-bold text-gray-200 mb-4">Quick Links</h3>
               <div className="space-y-3">
-                {links.map((link, index) => (
+                {displayLinks.map((link, index) => (
                   <Link
                     key={index}
                     href={link.url}
@@ -173,23 +157,25 @@ export default function EditableContactContent() {
                     rel={link.url.startsWith("http") ? "noopener noreferrer" : undefined}
                     className="flex items-center gap-3 p-3 glass rounded-lg hover:bg-orange-500/10 border border-orange-500/20 hover:border-orange-500/50 transition-all group"
                   >
-                    <span className="text-2xl">{link.icon || "🔗"}</span>
+                    <span className="text-2xl">{link.icon}</span>
                     <span className="text-gray-300 group-hover:text-orange-500 transition-colors">
                       {link.label}
                     </span>
                     <span className="ml-auto text-orange-500">→</span>
                   </Link>
                 ))}
-                <Link
-                  href={`mailto:${email}`}
-                  className="flex items-center gap-3 p-3 glass rounded-lg hover:bg-orange-500/10 border border-orange-500/20 hover:border-orange-500/50 transition-all group"
-                >
-                  <span className="text-2xl">📧</span>
-                  <span className="text-gray-300 group-hover:text-orange-500 transition-colors">
-                    {email}
-                  </span>
-                  <span className="ml-auto text-orange-500">→</span>
-                </Link>
+                {email ? (
+                  <Link
+                    href={`mailto:${email}`}
+                    className="flex items-center gap-3 p-3 glass rounded-lg hover:bg-orange-500/10 border border-orange-500/20 hover:border-orange-500/50 transition-all group"
+                  >
+                    <span className="text-2xl">📧</span>
+                    <span className="text-gray-300 group-hover:text-orange-500 transition-colors">
+                      {email}
+                    </span>
+                    <span className="ml-auto text-orange-500">→</span>
+                  </Link>
+                ) : null}
               </div>
             </div>
           </div>
@@ -199,4 +185,3 @@ export default function EditableContactContent() {
     </>
   );
 }
-

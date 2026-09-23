@@ -1,5 +1,5 @@
 import PortfolioSectionClient from "./portfoliosectionclient";
 
-export default function PortfolioSection() {
-  return <PortfolioSectionClient />;
+export default function PortfolioSection({ initialProjects = [] }) {
+  return <PortfolioSectionClient initialProjects={initialProjects} />;
 }

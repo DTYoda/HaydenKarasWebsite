@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import { randomUUID, createHash } from "crypto";
 import { createServiceRoleClient } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 const ANON_COOKIE_NAME = "blog-anon-id";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 

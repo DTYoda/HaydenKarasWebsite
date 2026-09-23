@@ -2,6 +2,11 @@ import { createServiceRoleClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { getSkillCatalog, resolveTagLabels, sanitizeTagSelection } from "@/lib/tag-catalog";
+import { getWriteAction } from "@/lib/api-action";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 function normalizeList(value) {
   if (Array.isArray(value)) {
@@ -94,7 +99,7 @@ export async function POST(req) {
         : 100,
     };
 
-    if (body.type === "new") {
+    if (getWriteAction(body) === "new") {
       const { data, error } = await supabase
         .from("education_timeline_courses")
         .insert(payload)
@@ -105,7 +110,7 @@ export async function POST(req) {
       return NextResponse.json({ success: true, data }, { status: 200 });
     }
 
-    if (body.type === "edit") {
+    if (getWriteAction(body) === "edit") {
       const { data, error } = await supabase
         .from("education_timeline_courses")
         .update(payload)
@@ -117,7 +122,7 @@ export async function POST(req) {
       return NextResponse.json({ success: true, data }, { status: 200 });
     }
 
-    if (body.type === "delete") {
+    if (getWriteAction(body) === "delete") {
       const { error } = await supabase
         .from("education_timeline_courses")
         .delete()

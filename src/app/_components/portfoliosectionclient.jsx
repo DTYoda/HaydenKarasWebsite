@@ -5,18 +5,29 @@ import { useRouter } from "next/navigation";
 import PortfolioResult from "./portfolioresult";
 import { useAuth } from "./authprovider";
 import AddButton from "./addbutton";
+import {
+  compareProjectDatesDesc,
+  getProjectImages,
+  mapProject,
+} from "@/lib/projects";
 
-export default function PortfolioSectionClient() {
+export default function PortfolioSectionClient({ initialProjects = [] }) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const [projects, setProjects] = useState([]);
-  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [projects, setProjects] = useState(initialProjects || []);
+  const [filteredProjects, setFilteredProjects] = useState(initialProjects || []);
   const [selectedType, setSelectedType] = useState("all");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialProjects?.length);
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (initialProjects?.length) {
+      setProjects(initialProjects);
+      setFilteredProjects(initialProjects);
+      setLoading(false);
+    } else {
+      fetchProjects();
+    }
+  }, [initialProjects]);
 
   // Calculate available project types and their counts
   const availableTypes = useMemo(() => {
@@ -52,28 +63,11 @@ export default function PortfolioSectionClient() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch("/api/projectshandler");
+      const response = await fetch("/api/projectshandler", { cache: "no-store" });
       if (response.ok) {
         const data = await response.json();
-        // Convert snake_case to camelCase
-        const converted = (data.data || []).map(p => ({
-          id: p.id,
-          urlTitle: p.url_title,
-          title: p.title,
-          descriptions: p.descriptions,
-          images: p.images,
-          links: p.links,
-          technologies: p.technologies,
-          type: p.type,
-          date: p.date
-        }));
-        // Sort by date (newest first)
-        const sorted = converted.sort((a, b) => {
-          const dateA = a.date || "";
-          const dateB = b.date || "";
-          // Compare YYYY-MM format strings (descending order)
-          return dateB.localeCompare(dateA);
-        });
+        const converted = (data.data || []).map((p) => mapProject(p) || p);
+        const sorted = converted.sort(compareProjectDatesDesc);
         setProjects(sorted);
         setFilteredProjects(sorted);
       }
@@ -106,23 +100,26 @@ export default function PortfolioSectionClient() {
       const response = await fetch("/api/projectshandler", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify({
-          type: "new",
+          action: "new",
           urlTitle: `new-project-${Date.now()}`,
           title: "New Project",
-          descriptions: JSON.stringify(["Add your project description here."]),
+          descriptions: JSON.stringify([
+            { title: "Overview", content: "Add your project description here." },
+          ]),
           images: JSON.stringify([]),
           links: JSON.stringify([]),
           technologies: JSON.stringify([]),
           projectType: "website",
-          date: new Date().toISOString().split('T')[0]
+          date: new Date().toISOString().slice(0, 7),
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         // Redirect to the new project page
-        router.push(`/portfolio/${data.data.url_title}`);
+        router.push(`/portfolio/${data.data.urlTitle || data.data.url_title}`);
       } else {
         alert("Error creating project");
       }
@@ -187,13 +184,8 @@ export default function PortfolioSectionClient() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 w-full max-w-7xl place-items-center">
         {filteredProjects.map((project, id) => {
-          let image = null;
-          try {
-            const images = JSON.parse(project.images || '[]');
-            image = images[0];
-          } catch (e) {
-            console.error("Error parsing images:", e);
-          }
+          const images = getProjectImages(project);
+          const image = images[0] || null;
           return (
             <div key={project.id || id} className="fade-in" style={{ animationDelay: `${id * 0.1}s` }}>
               <PortfolioResult

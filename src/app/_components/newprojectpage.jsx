@@ -13,6 +13,10 @@ import StandardTag from "./standardtag";
 import TagUsageModal from "./tagusagemodal";
 import { useTagUsage } from "./usetagusage";
 import { canonicalizeTagLabel, getTagMeta } from "@/lib/tags";
+import {
+  parseJsonField,
+  stringifyJsonField,
+} from "@/lib/projects";
 
 export default function NewProjectPage({ projectData: initialProjectData }) {
   const { isAuthenticated } = useAuth();
@@ -195,7 +199,8 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
   };
 
   // Parse project data
-  const rawImages = projectData ? JSON.parse(projectData.images || "[]") : [];
+  const parsedImages = parseJsonField(projectData?.images, []);
+  const rawImages = Array.isArray(parsedImages) ? parsedImages : [];
 
   // Helper to get image URL (handles both local and Supabase URLs)
   const getImageUrl = (imagePath) => {
@@ -203,31 +208,19 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
     if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
       return imagePath;
     }
-    return `/${projectData.url_title}/${imagePath}`;
+    return `/${projectData.url_title || projectData.urlTitle}/${imagePath}`;
   };
 
   const images = rawImages.map(getImageUrl).filter(Boolean);
-  const links = projectData ? JSON.parse(projectData.links || "[]") : [];
+  const parsedLinks = parseJsonField(projectData?.links, []);
+  const links = Array.isArray(parsedLinks) ? parsedLinks : [];
   const rawTechnologies = useMemo(() => {
     if (!projectData) return [];
-    try {
-      return JSON.parse(projectData.technologies || "[]");
-    } catch (error) {
-      console.error("Error parsing technologies:", error);
-      return [];
-    }
+    const parsed = parseJsonField(projectData.technologies, []);
+    return Array.isArray(parsed) ? parsed : [];
   }, [projectData]);
-  const highlights =
-    projectData && projectData.highlights
-      ? (() => {
-          try {
-            return JSON.parse(projectData.highlights);
-          } catch (e) {
-            console.error("Error parsing highlights:", e);
-            return [];
-          }
-        })()
-      : [];
+  const parsedHighlights = parseJsonField(projectData?.highlights, []);
+  const highlights = Array.isArray(parsedHighlights) ? parsedHighlights : [];
 
   // Normalize technology entries for standardized tag rendering.
   const technologies = useMemo(() => {
@@ -281,29 +274,25 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
   // Parse descriptions - support both old and new formats
   let descriptions = [];
   if (projectData) {
-    try {
-      const parsed = JSON.parse(projectData.descriptions || "[]");
-      if (Array.isArray(parsed)) {
-        if (
-          parsed.length > 0 &&
-          typeof parsed[0] === "object" &&
-          parsed[0].title !== undefined
-        ) {
-          descriptions = parsed;
-        } else {
-          descriptions = parsed.map((item, index) => ({
-            title: `Section ${index + 1}`,
-            content: item || "",
-          }));
-        }
-      } else if (typeof parsed === "object") {
-        descriptions = Object.entries(parsed).map(([title, content]) => ({
-          title,
-          content,
+    const parsed = parseJsonField(projectData.descriptions, []);
+    if (Array.isArray(parsed)) {
+      if (
+        parsed.length > 0 &&
+        typeof parsed[0] === "object" &&
+        parsed[0].title !== undefined
+      ) {
+        descriptions = parsed;
+      } else {
+        descriptions = parsed.map((item, index) => ({
+          title: `Section ${index + 1}`,
+          content: item || "",
         }));
       }
-    } catch (e) {
-      descriptions = [{ title: "Description", content: "" }];
+    } else if (parsed && typeof parsed === "object") {
+      descriptions = Object.entries(parsed).map(([title, content]) => ({
+        title,
+        content,
+      }));
     }
   }
 
@@ -367,43 +356,45 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
   // Update project function
   const updateProject = async (updates) => {
     try {
-      const newUrlTitle = updates.urlTitle || projectData.url_title;
+      const has = (key) => Object.prototype.hasOwnProperty.call(updates, key);
+      const newUrlTitle = has("urlTitle")
+        ? updates.urlTitle
+        : projectData.url_title;
       const urlTitleChanged = newUrlTitle !== projectData.url_title;
 
       const payload = {
-        type: "edit",
+        action: "edit",
         id: projectData.id,
         urlTitle: newUrlTitle,
-        title: updates.title || projectData.title,
-        descriptions:
-          typeof updates.descriptions === "string"
-            ? updates.descriptions
-            : updates.descriptions || projectData.descriptions,
-        images:
-          typeof updates.images === "string"
-            ? updates.images
-            : updates.images || projectData.images,
-        links:
-          typeof updates.links === "string"
-            ? updates.links
-            : updates.links || projectData.links,
-        technologies:
-          typeof updates.technologies === "string"
-            ? updates.technologies
-            : updates.technologies || projectData.technologies,
-        ...(updates.highlights !== undefined && {
-          highlights:
-            typeof updates.highlights === "string"
-              ? updates.highlights
-              : updates.highlights || projectData.highlights || "[]",
-        }),
-        projectType: updates.projectType || projectData.type,
-        date: updates.date || projectData.date,
+        title: has("title") ? updates.title : projectData.title,
+        descriptions: stringifyJsonField(
+          has("descriptions") ? updates.descriptions : projectData.descriptions,
+          []
+        ),
+        images: stringifyJsonField(
+          has("images") ? updates.images : projectData.images,
+          []
+        ),
+        links: stringifyJsonField(
+          has("links") ? updates.links : projectData.links,
+          []
+        ),
+        technologies: stringifyJsonField(
+          has("technologies") ? updates.technologies : projectData.technologies,
+          []
+        ),
+        highlights: stringifyJsonField(
+          has("highlights") ? updates.highlights : projectData.highlights,
+          []
+        ),
+        projectType: has("projectType") ? updates.projectType : projectData.type,
+        date: has("date") ? updates.date || null : projectData.date,
       };
 
       const response = await fetch("/api/projectshandler", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify(payload),
       });
 
@@ -416,11 +407,16 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
         }
 
         const updatedProject = responseData.data;
+        setProjectData({
+          ...projectData,
+          ...updatedProject,
+          url_title: updatedProject.urlTitle || updatedProject.url_title,
+        });
+        setEditModal({ isOpen: false, section: null });
 
         if (urlTitleChanged) {
-          router.push(`/portfolio/${updatedProject.url_title}`);
+          router.push(`/portfolio/${updatedProject.urlTitle || updatedProject.url_title}`);
         } else {
-          setEditModal({ isOpen: false, section: null });
           router.refresh();
         }
       } else {
@@ -454,7 +450,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "delete",
+          action: "delete",
           id: projectData.id,
         }),
       });
@@ -874,10 +870,10 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
             onClose={() => setEditModal({ isOpen: false, section: null })}
             onSave={async (data) => {
               await updateProject(data);
-              setEditModal({ isOpen: false, section: null });
             }}
             projectData={{
-              url_title: projectData.url_title,
+              id: projectData.id,
+              url_title: projectData.url_title || projectData.urlTitle,
               title: projectData.title,
               descriptions: projectData.descriptions,
               links: projectData.links,

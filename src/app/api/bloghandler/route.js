@@ -2,6 +2,11 @@ import { createServerClient, createServiceRoleClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { getSkillCatalog, resolveTagLabels, sanitizeTagSelection } from "@/lib/tag-catalog";
+import { getWriteAction } from "@/lib/api-action";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
@@ -147,7 +152,7 @@ export async function POST(req) {
     const supabase = createServiceRoleClient();
     const skillCatalog = await getSkillCatalog(supabase);
 
-    if (body.type === "new") {
+    if (getWriteAction(body) === "new") {
       const validationError = validatePostBody(body);
       if (validationError) {
         return NextResponse.json({ success: false, message: validationError }, { status: 400 });
@@ -195,7 +200,7 @@ export async function POST(req) {
       return NextResponse.json({ success: true, message: "Post created", data }, { status: 200 });
     }
 
-    if (body.type === "edit") {
+    if (getWriteAction(body) === "edit") {
       if (!body.id) {
         return NextResponse.json({ success: false, message: "Post id is required" }, { status: 400 });
       }
@@ -253,7 +258,7 @@ export async function POST(req) {
       return NextResponse.json({ success: true, message: "Post updated", data }, { status: 200 });
     }
 
-    if (body.type === "delete") {
+    if (getWriteAction(body) === "delete") {
       if (!body.id) {
         return NextResponse.json({ success: false, message: "Post id is required" }, { status: 400 });
       }

@@ -1,6 +1,11 @@
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase';
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getWriteAction } from "@/lib/api-action";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export async function POST(req) {
   try {
@@ -20,7 +25,9 @@ export async function POST(req) {
     }
     const supabase = createServiceRoleClient();
 
-    if (body.type == "new") {
+    const action = getWriteAction(body);
+
+    if (action == "new") {
       const { data, error } = await supabase
         .from('education')
         .insert({
@@ -35,7 +42,7 @@ export async function POST(req) {
 
       if (error) throw error;
       return NextResponse.json({ success: true, message: "Data received!", data }, { status: 200 });
-    } else if (body.type == "edit") {
+    } else if (action == "edit") {
       const { data, error } = await supabase
         .from('education')
         .update({
@@ -50,7 +57,7 @@ export async function POST(req) {
 
       if (error) throw error;
       return NextResponse.json({ success: true, message: "Data received!", data: body }, { status: 200 });
-    } else if (body.type == "delete") {
+    } else if (action == "delete") {
       const { error } = await supabase
         .from('education')
         .delete()

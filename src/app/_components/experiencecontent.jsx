@@ -48,9 +48,9 @@ export default function ExperienceContent() {
   const fetchData = async () => {
     try {
       const [skillsRes, workResearchRes, timelineRes] = await Promise.all([
-        fetch("/api/skillshandler"),
-        fetch("/api/workresearchhandler"),
-        fetch("/api/educationtimelinehandler"),
+        fetch("/api/skillshandler", { cache: "no-store" }),
+        fetch("/api/workresearchhandler", { cache: "no-store" }),
+        fetch("/api/educationtimelinehandler", { cache: "no-store" }),
       ]);
 
       if (skillsRes.ok) {
