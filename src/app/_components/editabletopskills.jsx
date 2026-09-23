@@ -7,7 +7,7 @@ import EditButton from "./editbutton";
 import StandardTag from "./standardtag";
 import { useTagUsage } from "./usetagusage";
 import TagUsageModal from "./tagusagemodal";
-import { buildTagStatChips, getTagMeta, PROJECT_CATEGORY_LABELS } from "@/lib/tags";
+import { getTagMeta, PROJECT_CATEGORY_LABELS } from "@/lib/tags";
 
 const categoryOrder = [
   "programming-language",
@@ -156,12 +156,13 @@ export default function EditableTopSkills({ initialData, initialSettings }) {
         {isAuthenticated && (
           <div className="absolute top-0 right-0 z-10">
             <EditButton
+              title="Edit top skills display rules"
+              label="Edit Display Rules"
               onClick={() => {
                 setDraftCount(skillCount);
                 setDraftCategories(allowedCategories);
                 setIsSettingsOpen(true);
               }}
-              label="Edit Display Rules"
             />
           </div>
         )}
@@ -210,37 +211,18 @@ export default function EditableTopSkills({ initialData, initialSettings }) {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {(groupedSkills[category] || []).map((skill) => (
-                    <div key={skill.id || skill.name} className="flex flex-col gap-1">
-                      <StandardTag
-                        label={skill.canonicalLabel}
-                        category={skill.canonicalCategory}
-                        title={skill.top_project_label || skill.description}
-                        onClick={async () => {
-                          const usage =
-                            (await loadTagUsage(skill.canonicalLabel)) ||
-                            getUsage(skill.canonicalLabel);
-                          if (usage) setSelectedTagUsage(usage);
-                        }}
-                      />
-                      {buildTagStatChips({
-                        yearsExperience: skill.years_experience,
-                        counts: getUsage(skill.canonicalLabel)?.counts,
-                      }).length > 0 ? (
-                        <div className="flex flex-wrap gap-1 px-0.5 pt-0.5">
-                          {buildTagStatChips({
-                            yearsExperience: skill.years_experience,
-                            counts: getUsage(skill.canonicalLabel)?.counts,
-                          }).map((chip) => (
-                            <span
-                              key={`${skill.id || skill.name}-${chip}`}
-                              className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-gray-300"
-                            >
-                              {chip}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
+                    <StandardTag
+                      key={skill.id || skill.name}
+                      label={skill.canonicalLabel}
+                      category={skill.canonicalCategory}
+                      title={skill.top_project_label || skill.description}
+                      onClick={async () => {
+                        const usage =
+                          (await loadTagUsage(skill.canonicalLabel)) ||
+                          getUsage(skill.canonicalLabel);
+                        if (usage) setSelectedTagUsage(usage);
+                      }}
+                    />
                   ))}
                 </div>
               </div>

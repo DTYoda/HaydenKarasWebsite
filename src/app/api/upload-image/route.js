@@ -20,6 +20,7 @@ export async function POST(req) {
     const formData = await req.formData();
     const file = formData.get('file');
     const projectId = formData.get('projectId');
+    const folder = formData.get('folder');
     const fileName = formData.get('fileName');
 
     if (!file) {
@@ -32,8 +33,11 @@ export async function POST(req) {
     // Create a unique file path
     const fileExt = file.name.split('.').pop();
     const uniqueFileName = fileName || `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const safeFolder = String(folder || "").replace(/[^a-zA-Z0-9/_-]/g, "").replace(/^\/+|\/+$/g, "");
     const filePath = projectId 
       ? `projects/${projectId}/${uniqueFileName}`
+      : safeFolder
+        ? `${safeFolder}/${uniqueFileName}`
       : `projects/temp/${uniqueFileName}`;
 
     // Read file as ArrayBuffer (Supabase accepts ArrayBuffer, Blob, or File)

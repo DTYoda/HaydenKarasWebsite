@@ -6,9 +6,31 @@ import { useAuth } from "./authprovider";
 import { useEditable } from "./useeditable";
 import EditButton from "./editbutton";
 
+async function savePageContent({ key, page, section, content, contentType = "text" }) {
+  const response = await fetch("/api/pagecontent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({
+      action: "edit",
+      key,
+      page,
+      section,
+      content,
+      contentType,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to save image");
+  }
+  return data;
+}
+
 export default function EditableWhoAmI({ initialData }) {
   const { isAuthenticated } = useAuth();
   const [content, setContent] = useState(initialData || {});
+  const [uploading, setUploading] = useState(false);
   const { openEditModal, EditModalComponent } = useEditable(
     "pagecontent",
     (result) => {
@@ -20,6 +42,7 @@ export default function EditableWhoAmI({ initialData }) {
         else if (item.key === "about-whoami-subtitle") next.subtitle = item.content;
         else if (item.key === "about-whoami-paragraph1") next.paragraph1 = item.content;
         else if (item.key === "about-whoami-paragraph2") next.paragraph2 = item.content;
+        else if (item.key === "about-whoami-image") next.imageUrl = item.content;
         return next;
       });
     }
@@ -41,6 +64,41 @@ export default function EditableWhoAmI({ initialData }) {
   const subtitle = content.subtitle || "";
   const paragraph1 = content.paragraph1 || "";
   const paragraph2 = content.paragraph2 || "";
+  const imageUrl = content.imageUrl || "/CrossArmImage.png";
+
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "about");
+      formData.append("fileName", file.name);
+
+      const uploadResponse = await fetch("/api/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+      const uploadData = await uploadResponse.json().catch(() => ({}));
+      if (!uploadResponse.ok) {
+        throw new Error(uploadData.message || "Upload failed");
+      }
+
+      await savePageContent({
+        key: "about-whoami-image",
+        page: "about",
+        section: "whoami",
+        content: uploadData.url,
+        contentType: "text",
+      });
+      setContent((prev) => ({ ...prev, imageUrl: uploadData.url }));
+    } catch (error) {
+      console.error("Error uploading about image:", error);
+      alert(error.message || "Error uploading image");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <>
@@ -48,6 +106,7 @@ export default function EditableWhoAmI({ initialData }) {
         <div className="text-center mb-16 fade-in relative">
           {isAuthenticated && (
             <EditButton
+              title="Edit Who Am I title"
               onClick={() =>
                 openEditModal(
                   {
@@ -57,7 +116,8 @@ export default function EditableWhoAmI({ initialData }) {
                     content: title,
                     type: "text",
                   },
-                  textFields
+                  textFields,
+                  "Edit Who Am I Title"
                 )
               }
             />
@@ -68,6 +128,7 @@ export default function EditableWhoAmI({ initialData }) {
           <p className="text-xl sm:text-2xl text-gray-400 font-light relative">
             {isAuthenticated && (
               <EditButton
+                title="Edit Who Am I subtitle"
                 onClick={() =>
                   openEditModal(
                     {
@@ -77,7 +138,8 @@ export default function EditableWhoAmI({ initialData }) {
                       content: subtitle,
                       type: "text",
                     },
-                    textFields
+                    textFields,
+                    "Edit Who Am I Subtitle"
                   )
                 }
               />
@@ -89,10 +151,27 @@ export default function EditableWhoAmI({ initialData }) {
         <div className="flex flex-col md:flex-row gap-12 items-center">
           <div className="md:w-1/2 flex items-center justify-center w-full slide-in-left">
             <div className="relative group w-full max-w-md">
+              {isAuthenticated && (
+                <label className="absolute top-3 right-3 z-20 bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-3 py-2 text-sm font-semibold cursor-pointer shadow-lg">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        handleImageUpload(e.target.files[0]);
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                  {uploading ? "Uploading..." : "Change Photo"}
+                </label>
+              )}
               <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition duration-300"></div>
               <div className="relative border-4 border-orange-500/50 rounded-2xl overflow-hidden hover-lift glow-orange-hover">
                 <Image
-                  src="/CrossArmImage.png"
+                  src={imageUrl}
                   height={500}
                   width={500}
                   alt="Hayden Karas"
@@ -106,6 +185,7 @@ export default function EditableWhoAmI({ initialData }) {
             <div className="glass rounded-2xl p-8 hover-lift relative">
               {isAuthenticated && (
                 <EditButton
+                  title="Edit Who Am I paragraph 1"
                   onClick={() =>
                     openEditModal(
                       {
@@ -115,7 +195,8 @@ export default function EditableWhoAmI({ initialData }) {
                         content: paragraph1,
                         type: "html",
                       },
-                      textFields
+                      textFields,
+                      "Edit Who Am I Paragraph 1"
                     )
                   }
                 />
@@ -128,6 +209,7 @@ export default function EditableWhoAmI({ initialData }) {
             <div className="glass rounded-2xl p-8 hover-lift relative">
               {isAuthenticated && (
                 <EditButton
+                  title="Edit Who Am I paragraph 2"
                   onClick={() =>
                     openEditModal(
                       {
@@ -137,7 +219,8 @@ export default function EditableWhoAmI({ initialData }) {
                         content: paragraph2,
                         type: "html",
                       },
-                      textFields
+                      textFields,
+                      "Edit Who Am I Paragraph 2"
                     )
                   }
                 />

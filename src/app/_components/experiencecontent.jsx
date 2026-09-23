@@ -25,26 +25,6 @@ export default function ExperienceContent() {
   const [selectedTagUsage, setSelectedTagUsage] = useState(null);
   const { getUsage, loadTagUsage } = useTagUsage();
 
-  const buildExperienceStatChips = (yearsExperience, counts) => {
-    const chips = [];
-    const years = Number(yearsExperience);
-    if (Number.isFinite(years) && years > 0) {
-      chips.push(`${years}y`);
-    }
-
-    const projects = Number(counts?.projects || 0);
-    if (projects > 0) {
-      chips.push(`${projects} proj`);
-    }
-
-    const courses = Number(counts?.coursework || 0);
-    if (courses > 0) {
-      chips.push(`${courses} courses`);
-    }
-
-    return chips;
-  };
-
   const fetchData = async () => {
     try {
       const [skillsRes, workResearchRes, timelineRes] = await Promise.all([
@@ -146,7 +126,6 @@ export default function ExperienceContent() {
         displayLabel: tagMeta.label,
         usage,
         totalAppearances,
-        statChips: buildExperienceStatChips(skill.years_experience, usage?.counts),
         category,
       });
     });
@@ -209,7 +188,7 @@ export default function ExperienceContent() {
         {isAuthenticated && (
           <div className="absolute top-6 right-6 z-10">
             <AddButton
-              onClick={() => openSkillEdit(null, skillFields)}
+              onClick={() => openSkillEdit(null, skillFields, "Add Skill")}
               label="Add Skill"
             />
           </div>
@@ -262,7 +241,13 @@ export default function ExperienceContent() {
                         <div className="flex gap-2 mb-2">
                           <button
                             type="button"
-                            onClick={() => openSkillEdit(entry.skill, skillFields)}
+                            onClick={() =>
+                              openSkillEdit(
+                                entry.skill,
+                                skillFields,
+                                `Edit Skill: ${entry.displayLabel}`
+                              )
+                            }
                             className="text-[11px] px-2 py-1 rounded border border-orange-500/30 text-orange-300 hover:border-orange-400/70"
                           >
                             Edit
@@ -286,18 +271,6 @@ export default function ExperienceContent() {
                           if (usage) setSelectedTagUsage(usage);
                         }}
                       />
-                      {entry.statChips?.length ? (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {entry.statChips.map((chip) => (
-                            <span
-                              key={`${entry.skill.id || entry.displayLabel}-${chip}`}
-                              className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-gray-300"
-                            >
-                              {chip}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
                     </div>
                   ))}
                 </div>

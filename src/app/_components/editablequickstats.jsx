@@ -46,7 +46,7 @@ export default function EditableQuickStats({ initialData }) {
         {isAuthenticated && (
           <div className="absolute -top-12 right-0 z-10">
             <AddButton
-              onClick={() => openEditModal(null, statFields)}
+              onClick={() => openEditModal(null, statFields, "Add Quick Stat")}
               label="Add Stat"
             />
           </div>
@@ -64,7 +64,12 @@ export default function EditableQuickStats({ initialData }) {
             >
               {isAuthenticated && (
                 <>
-                  <EditButton onClick={() => openEditModal(stat, statFields)} />
+                  <EditButton
+                    title={`Edit quick stat: ${stat.label || "stat"}`}
+                    onClick={() =>
+                      openEditModal(stat, statFields, `Edit Quick Stat: ${stat.label || ""}`)
+                    }
+                  />
                   <DeleteButton
                     onClick={() => {
                       handleDelete(stat.id);

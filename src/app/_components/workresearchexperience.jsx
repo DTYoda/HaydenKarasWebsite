@@ -99,7 +99,7 @@ export default function WorkResearchExperience({
 
   const openEditor = (item) => {
     if (!item) {
-      openWorkResearchEdit(null, workResearchFields);
+      openWorkResearchEdit(null, workResearchFields, "Add Work/Research Experience");
       return;
     }
 
@@ -111,7 +111,8 @@ export default function WorkResearchExperience({
           ? item.highlights.join("\n")
           : item.highlights || "",
       },
-      workResearchFields
+      workResearchFields,
+      `Edit ${item.type === "research" ? "Research" : "Work"}: ${item.title || "Experience"}`
     );
   };
 

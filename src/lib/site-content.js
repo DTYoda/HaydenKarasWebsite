@@ -62,6 +62,7 @@ export function mapWhoAmI(map) {
     subtitle: pickContent(map, "about-whoami-subtitle"),
     paragraph1: pickContent(map, "about-whoami-paragraph1"),
     paragraph2: pickContent(map, "about-whoami-paragraph2"),
+    imageUrl: pickContent(map, "about-whoami-image", "/CrossArmImage.png"),
   };
 }
 
@@ -71,6 +72,7 @@ export function mapBackground(map) {
     subtitle: pickContent(map, "about-background-subtitle"),
     paragraph1: pickContent(map, "about-background-paragraph1"),
     paragraph2: pickContent(map, "about-background-paragraph2"),
+    imageUrl: pickContent(map, "about-background-image", "/SkillsUSAImage.jpeg"),
   };
 }
 

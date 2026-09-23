@@ -87,6 +87,7 @@ export default function EditableContactContent({ initialData }) {
             <div className="relative">
               {isAuthenticated && (
                 <EditButton
+                  title="Edit availability list"
                   onClick={() =>
                     openEditModal(
                       {
@@ -96,7 +97,8 @@ export default function EditableContactContent({ initialData }) {
                         content: JSON.stringify(availableFor),
                         type: "json",
                       },
-                      availableForFields
+                      availableForFields,
+                      "Edit Availability List"
                     )
                   }
                 />
@@ -116,6 +118,7 @@ export default function EditableContactContent({ initialData }) {
               {isAuthenticated && (
                 <div className="absolute top-0 right-0 flex gap-2 z-10">
                   <EditButton
+                    title="Edit contact links"
                     onClick={() =>
                       openEditModal(
                         {
@@ -127,11 +130,13 @@ export default function EditableContactContent({ initialData }) {
                           ),
                           type: "json",
                         },
-                        linksFields
+                        linksFields,
+                        "Edit Contact Links"
                       )
                     }
                   />
                   <EditButton
+                    title="Edit contact email"
                     onClick={() =>
                       openEditModal(
                         {
@@ -141,7 +146,8 @@ export default function EditableContactContent({ initialData }) {
                           content: email,
                           type: "text",
                         },
-                        emailFields
+                        emailFields,
+                        "Edit Contact Email"
                       )
                     }
                   />

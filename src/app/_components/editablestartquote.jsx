@@ -63,6 +63,7 @@ export default function EditableStartQuote({
           <div className="mb-6 sm:mb-8 relative">
             {isAuthenticated && (
               <EditButton
+                title="Edit page quote"
                 onClick={() =>
                   openEditModal(
                     {
@@ -72,7 +73,8 @@ export default function EditableStartQuote({
                       content: quote,
                       type: "text",
                     },
-                    quoteFields
+                    quoteFields,
+                    "Edit Page Quote"
                   )
                 }
               />
@@ -90,6 +92,7 @@ export default function EditableStartQuote({
           <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mt-6 sm:mt-8 mb-6 sm:mb-8 relative">
             {isAuthenticated && (
               <EditButton
+                title="Edit quote author"
                 onClick={() =>
                   openEditModal(
                     {
@@ -99,7 +102,8 @@ export default function EditableStartQuote({
                       content: author,
                       type: "text",
                     },
-                    authorFields
+                    authorFields,
+                    "Edit Quote Author"
                   )
                 }
               />
@@ -110,6 +114,7 @@ export default function EditableStartQuote({
           <div className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8 relative">
             {isAuthenticated && (
               <EditButton
+                title="Edit quote links"
                 onClick={() =>
                   openEditModal(
                     {
@@ -119,7 +124,8 @@ export default function EditableStartQuote({
                       content: JSON.stringify(links),
                       type: "json",
                     },
-                    linksFields
+                    linksFields,
+                    "Edit Quote Links"
                   )
                 }
               />

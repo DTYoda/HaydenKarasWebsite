@@ -8,7 +8,12 @@ import EditModal from "./editmodal";
 export function useEditable(type, onSaveCallback) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const [editModal, setEditModal] = useState({ isOpen: false, data: null, fields: [] });
+  const [editModal, setEditModal] = useState({
+    isOpen: false,
+    data: null,
+    fields: [],
+    title: null,
+  });
 
   const handleSave = async (data) => {
     try {
@@ -95,7 +100,7 @@ export function useEditable(type, onSaveCallback) {
       const result = await response.json().catch(() => ({}));
 
       if (response.ok) {
-        setEditModal({ isOpen: false, data: null, fields: [] });
+        setEditModal({ isOpen: false, data: null, fields: [], title: null });
         if (onSaveCallback) onSaveCallback(result);
         router.refresh();
       } else {
@@ -172,20 +177,21 @@ export function useEditable(type, onSaveCallback) {
     }
   };
 
-  const openEditModal = (data, fields) => {
-    setEditModal({ isOpen: true, data, fields });
+  const openEditModal = (data, fields, title = null) => {
+    setEditModal({ isOpen: true, data, fields, title });
   };
 
   const closeEditModal = () => {
-    setEditModal({ isOpen: false, data: null, fields: [] });
+    setEditModal({ isOpen: false, data: null, fields: [], title: null });
   };
 
+  const defaultTitle = `${editModal.data ? "Edit" : "Add"} ${type}`;
   const EditModalComponent = editModal.isOpen ? (
     <EditModal
       isOpen={editModal.isOpen}
       onClose={closeEditModal}
       onSave={handleSave}
-      title={`${editModal.data ? "Edit" : "Add"} ${type}`}
+      title={editModal.title || defaultTitle}
       fields={editModal.fields || []}
       initialData={editModal.data || {}}
     />

@@ -29,23 +29,39 @@ export default function PortfolioSectionClient({ initialProjects = [] }) {
     }
   }, [initialProjects]);
 
-  // Calculate available project types and their counts
+  const formatTypeLabel = (type) => {
+    const trimmed = String(type || "").trim();
+    if (!trimmed) return "Other";
+    const titled = trimmed
+      .split(/[\s_-]+/)
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+    if (/s$/i.test(titled)) return titled;
+    if (/[^aeiou]y$/i.test(titled)) return `${titled.slice(0, -1)}ies`;
+    return `${titled}s`;
+  };
+
+  // Derive filters from whatever project types exist in the database
   const availableTypes = useMemo(() => {
     const typeCounts = {};
     projects.forEach((project) => {
-      const projectType = (project.type || "website").toLowerCase();
+      const projectType = String(project.type || "website").trim().toLowerCase() || "website";
       typeCounts[projectType] = (typeCounts[projectType] || 0) + 1;
     });
-    return typeCounts;
+    return Object.entries(typeCounts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([type, count]) => ({ type, count, label: formatTypeLabel(type) }));
   }, [projects]);
 
-  // Map of type values to display labels
-  const typeLabels = {
-    website: "Websites",
-    game: "Games",
-    application: "Applications",
-    "class project": "Class Projects",
-  };
+  useEffect(() => {
+    if (
+      selectedType !== "all" &&
+      !availableTypes.some((entry) => entry.type === selectedType)
+    ) {
+      setSelectedType("all");
+    }
+  }, [availableTypes, selectedType]);
 
   useEffect(() => {
     // Filter projects by type
@@ -54,7 +70,7 @@ export default function PortfolioSectionClient({ initialProjects = [] }) {
     } else {
       setFilteredProjects(
         projects.filter((project) => {
-          const projectType = (project.type || "website").toLowerCase();
+          const projectType = String(project.type || "website").trim().toLowerCase() || "website";
           return projectType === selectedType.toLowerCase();
         })
       );
@@ -161,25 +177,19 @@ export default function PortfolioSectionClient({ initialProjects = [] }) {
         >
           All Projects
         </button>
-        {Object.entries(availableTypes).map(([type, count]) => {
-          // Only show if there's at least one project and we have a label for it
-          if (count > 0 && typeLabels[type]) {
-            return (
-              <button
-                key={type}
-                onClick={() => setSelectedType(type)}
-                className={`px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 ${
-                  selectedType === type
-                    ? "bg-orange-500 text-white shadow-lg shadow-orange-500/50"
-                    : "glass text-orange-500 hover:bg-orange-500/10 border border-orange-500/20"
-                }`}
-              >
-                {typeLabels[type]}
-              </button>
-            );
-          }
-          return null;
-        })}
+        {availableTypes.map(({ type, label }) => (
+          <button
+            key={type}
+            onClick={() => setSelectedType(type)}
+            className={`px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 ${
+              selectedType === type
+                ? "bg-orange-500 text-white shadow-lg shadow-orange-500/50"
+                : "glass text-orange-500 hover:bg-orange-500/10 border border-orange-500/20"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 w-full max-w-7xl place-items-center">

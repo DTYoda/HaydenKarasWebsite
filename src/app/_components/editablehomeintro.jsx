@@ -65,6 +65,7 @@ export default function EditableHomeIntro({ initialData }) {
         <div className="mb-4 sm:mb-6 relative">
           {isAuthenticated && (
             <EditButton
+              title="Edit greeting text"
               onClick={() =>
                 openEditModal(
                   {
@@ -74,7 +75,8 @@ export default function EditableHomeIntro({ initialData }) {
                     content: introText,
                     type: "text",
                   },
-                  textFields
+                  textFields,
+                  "Edit Home Greeting"
                 )
               }
             />
@@ -90,6 +92,7 @@ export default function EditableHomeIntro({ initialData }) {
         <h1 className="font-bold text-4xl sm:text-6xl md:text-7xl lg:text-8xl mb-4 sm:mb-6 leading-tight relative">
           {isAuthenticated && (
             <EditButton
+              title="Edit display name"
               onClick={() =>
                 openEditModal(
                   {
@@ -99,7 +102,8 @@ export default function EditableHomeIntro({ initialData }) {
                     content: name,
                     type: "text",
                   },
-                  textFields
+                  textFields,
+                  "Edit Display Name"
                 )
               }
             />
@@ -109,6 +113,7 @@ export default function EditableHomeIntro({ initialData }) {
         <div className="space-y-2 sm:space-y-4 mb-8 sm:mb-12 relative">
           {isAuthenticated && (
             <EditButton
+              title="Edit roles"
               onClick={() =>
                 openEditModal(
                   {
@@ -118,7 +123,8 @@ export default function EditableHomeIntro({ initialData }) {
                     content: JSON.stringify(roles),
                     type: "json",
                   },
-                  rolesFields
+                  rolesFields,
+                  "Edit Roles"
                 )
               }
             />
@@ -141,6 +147,7 @@ export default function EditableHomeIntro({ initialData }) {
           {isAuthenticated && (
             <div className="absolute -top-2 -right-2 z-10 flex gap-2">
               <EditButton
+                title="Edit resume link"
                 onClick={() =>
                   openEditModal(
                     {
@@ -150,11 +157,13 @@ export default function EditableHomeIntro({ initialData }) {
                       content: resumeLink,
                       type: "text",
                     },
-                    textFields
+                    textFields,
+                    "Edit Resume Link"
                   )
                 }
               />
               <EditButton
+                title="Edit LinkedIn link"
                 onClick={() =>
                   openEditModal(
                     {
@@ -164,11 +173,13 @@ export default function EditableHomeIntro({ initialData }) {
                       content: linkedinLink,
                       type: "text",
                     },
-                    textFields
+                    textFields,
+                    "Edit LinkedIn Link"
                   )
                 }
               />
               <EditButton
+                title="Edit GitHub link"
                 onClick={() =>
                   openEditModal(
                     {
@@ -178,7 +189,8 @@ export default function EditableHomeIntro({ initialData }) {
                       content: githubLink,
                       type: "text",
                     },
-                    textFields
+                    textFields,
+                    "Edit GitHub Link"
                   )
                 }
               />
