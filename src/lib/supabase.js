@@ -1,5 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
+const noStoreFetch = (url, options = {}) =>
+  fetch(url, { ...options, cache: "no-store" });
+
+function withNoStore(options = {}) {
+  return {
+    ...options,
+    global: {
+      ...(options.global || {}),
+      fetch: noStoreFetch,
+    },
+  };
+}
+
 // Server-side client (for API routes and server components)
 export function createServerClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,10 +21,10 @@ export function createServerClient() {
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
     // Return a mock client that will fail gracefully
-    return createClient('https://placeholder.supabase.co', 'placeholder-key');
+    return createClient('https://placeholder.supabase.co', 'placeholder-key', withNoStore());
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey);
+  return createClient(supabaseUrl, supabaseAnonKey, withNoStore());
 }
 
 // Service role client (bypasses RLS - use only in server-side API routes with admin auth)
@@ -28,12 +41,16 @@ export function createServiceRoleClient() {
     throw new Error(message);
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
+  return createClient(
+    supabaseUrl,
+    supabaseServiceKey,
+    withNoStore({
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+  );
 }
 
 // Client-side client (for client components)

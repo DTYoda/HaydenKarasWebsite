@@ -7,7 +7,7 @@ import EditButton from "./editbutton";
 import StandardTag from "./standardtag";
 import { useTagUsage } from "./usetagusage";
 import TagUsageModal from "./tagusagemodal";
-import { buildTagStatChips, getTagMeta, PROJECT_CATEGORY_LABELS } from "@/lib/tags";
+import { getTagMeta, PROJECT_CATEGORY_LABELS } from "@/lib/tags";
 
 const categoryOrder = [
   "programming-language",
@@ -21,90 +21,40 @@ const categoryOrder = [
   "other",
 ];
 
-export default function EditableTopSkills({ initialData }) {
+export default function EditableTopSkills({ initialData, initialSettings }) {
   const { isAuthenticated } = useAuth();
   const [topSkills, setTopSkills] = useState(initialData || []);
-  const [loading, setLoading] = useState(!initialData);
-  const [skillCount, setSkillCount] = useState(8);
-  const [allowedCategories, setAllowedCategories] = useState(categoryOrder);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [skillCount, setSkillCount] = useState(initialSettings?.count || 8);
+  const [allowedCategories, setAllowedCategories] = useState(
+    initialSettings?.categories || categoryOrder
+  );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [draftCount, setDraftCount] = useState(8);
-  const [draftCategories, setDraftCategories] = useState(categoryOrder);
+  const [draftCount, setDraftCount] = useState(initialSettings?.count || 8);
+  const [draftCategories, setDraftCategories] = useState(
+    initialSettings?.categories || categoryOrder
+  );
   const [selectedTagUsage, setSelectedTagUsage] = useState(null);
   const { getUsage, loadTagUsage } = useTagUsage();
 
   useEffect(() => {
-    const initialize = async () => {
-      await fetchSkillSettings();
-      if (initialData) setLoading(false);
-    };
-    initialize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setTopSkills(initialData || []);
   }, [initialData]);
 
   useEffect(() => {
-    if (!settingsLoaded) return;
-    if (skillCount > 0 && allowedCategories.length > 0) {
-      fetchTopSkills(skillCount, allowedCategories);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skillCount, allowedCategories.join(","), settingsLoaded]);
+    if (!initialSettings) return;
+    setSkillCount(initialSettings.count || 8);
+    setAllowedCategories(initialSettings.categories || categoryOrder);
+    setDraftCount(initialSettings.count || 8);
+    setDraftCategories(initialSettings.categories || categoryOrder);
+  }, [initialSettings]);
 
-  const parseCategoriesSetting = (rawValue) => {
-    if (!rawValue) return categoryOrder;
+  const fetchTopSkills = async (
+    count = skillCount,
+    categories = allowedCategories
+  ) => {
     try {
-      const parsed = JSON.parse(rawValue);
-      if (Array.isArray(parsed)) {
-        const normalized = parsed
-          .map((value) => String(value || "").trim())
-          .filter((value) => categoryOrder.includes(value));
-        return normalized.length > 0 ? normalized : categoryOrder;
-      }
-    } catch {
-      // noop
-    }
-
-    const split = String(rawValue)
-      .split(/[\n,]/)
-      .map((value) => value.trim())
-      .filter((value) => categoryOrder.includes(value));
-    return split.length > 0 ? split : categoryOrder;
-  };
-
-  const fetchSkillSettings = async () => {
-    try {
-      const response = await fetch(
-        "/api/pagecontent?page=home&section=top-skills"
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const countSetting = data.data?.find(
-          (item) => item.key === "top-skills-count"
-        );
-        const categoriesSetting = data.data?.find(
-          (item) => item.key === "top-skills-categories"
-        );
-        const nextCount = countSetting ? parseInt(countSetting.content) || 8 : 8;
-        const nextCategories = parseCategoriesSetting(categoriesSetting?.content);
-        if (countSetting) {
-          setSkillCount(nextCount);
-        }
-        setAllowedCategories(nextCategories);
-        setDraftCount(nextCount);
-        setDraftCategories(nextCategories);
-      }
-      setSettingsLoaded(true);
-    } catch (error) {
-      console.error("Error fetching top skill settings:", error);
-      setSettingsLoaded(true);
-    }
-  };
-
-  const fetchTopSkills = async (count = skillCount, categories = allowedCategories) => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/skillshandler");
+      const response = await fetch("/api/skillshandler", { cache: "no-store" });
       if (response.ok) {
         const data = await response.json();
         // Sort by years experience descending, then name for stable fallback.
@@ -142,7 +92,7 @@ export default function EditableTopSkills({ initialData }) {
     try {
       const payloads = [
         {
-          type: "edit",
+          action: "edit",
           key: "top-skills-count",
           page: "home",
           section: "top-skills",
@@ -150,7 +100,7 @@ export default function EditableTopSkills({ initialData }) {
           contentType: "number",
         },
         {
-          type: "edit",
+          action: "edit",
           key: "top-skills-categories",
           page: "home",
           section: "top-skills",
@@ -163,6 +113,7 @@ export default function EditableTopSkills({ initialData }) {
         const response = await fetch("/api/pagecontent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          cache: "no-store",
           body: JSON.stringify(payload),
         });
         if (!response.ok) {
@@ -174,6 +125,7 @@ export default function EditableTopSkills({ initialData }) {
       setSkillCount(safeCount);
       setAllowedCategories(safeCategories);
       setIsSettingsOpen(false);
+      await fetchTopSkills(safeCount, safeCategories);
     } catch (error) {
       console.error("Error saving top skill settings:", error);
       alert("Failed to save top skill settings");
@@ -204,12 +156,13 @@ export default function EditableTopSkills({ initialData }) {
         {isAuthenticated && (
           <div className="absolute top-0 right-0 z-10">
             <EditButton
+              title="Edit top skills display rules"
+              label="Edit Display Rules"
               onClick={() => {
                 setDraftCount(skillCount);
                 setDraftCategories(allowedCategories);
                 setIsSettingsOpen(true);
               }}
-              label="Edit Display Rules"
             />
           </div>
         )}
@@ -251,44 +204,25 @@ export default function EditableTopSkills({ initialData }) {
               .map((category) => (
               <div
                 key={category}
-                className="glass rounded-lg p-4 border border-orange-500/20"
+                className="glass rounded-lg p-4 border border-orange-500/20 hover-lift transition-all duration-300 hover:border-orange-500/50"
               >
                 <h3 className="text-sm uppercase tracking-wider text-orange-300 font-semibold mb-3">
                   {PROJECT_CATEGORY_LABELS[category] || category}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {(groupedSkills[category] || []).map((skill) => (
-                    <div key={skill.id || skill.name} className="flex flex-col gap-1">
-                      <StandardTag
-                        label={skill.canonicalLabel}
-                        category={skill.canonicalCategory}
-                        title={skill.top_project_label || skill.description}
-                        onClick={async () => {
-                          const usage =
-                            (await loadTagUsage(skill.canonicalLabel)) ||
-                            getUsage(skill.canonicalLabel);
-                          if (usage) setSelectedTagUsage(usage);
-                        }}
-                      />
-                      {buildTagStatChips({
-                        yearsExperience: skill.years_experience,
-                        counts: getUsage(skill.canonicalLabel)?.counts,
-                      }).length > 0 ? (
-                        <div className="flex flex-wrap gap-1 px-0.5 pt-0.5">
-                          {buildTagStatChips({
-                            yearsExperience: skill.years_experience,
-                            counts: getUsage(skill.canonicalLabel)?.counts,
-                          }).map((chip) => (
-                            <span
-                              key={`${skill.id || skill.name}-${chip}`}
-                              className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-gray-300"
-                            >
-                              {chip}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
+                    <StandardTag
+                      key={skill.id || skill.name}
+                      label={skill.canonicalLabel}
+                      category={skill.canonicalCategory}
+                      title={skill.top_project_label || skill.description}
+                      onClick={async () => {
+                        const usage =
+                          (await loadTagUsage(skill.canonicalLabel)) ||
+                          getUsage(skill.canonicalLabel);
+                        if (usage) setSelectedTagUsage(usage);
+                      }}
+                    />
                   ))}
                 </div>
               </div>

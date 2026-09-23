@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch("/api/auth");
+      const response = await fetch("/api/auth", { cache: "no-store" });
       const data = await response.json();
       setIsAuthenticated(data.authenticated || false);
     } catch (error) {

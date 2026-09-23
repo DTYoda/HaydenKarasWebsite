@@ -3,6 +3,10 @@ import { createServiceRoleClient } from "@/lib/supabase";
 import { getTagUsageMap } from "@/lib/tag-usage";
 import { normalizeTagKey } from "@/lib/tags";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);

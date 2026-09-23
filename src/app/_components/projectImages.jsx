@@ -53,7 +53,7 @@ export default function ProjectImages({ images, onDelete = null }) {
       {/* Navigation Buttons */}
       <div className="flex justify-center items-center gap-8">
         <button
-          className="glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-12 w-12 md:h-16 md:w-16 flex justify-center items-center text-orange-500 text-2xl md:text-3xl font-bold transition-all duration-300 hover-lift hover:scale-110"
+          className="glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-12 w-12 md:h-16 md:w-16 flex justify-center items-center text-orange-500 text-2xl md:text-3xl font-bold transition-colors duration-300"
           onClick={goToPrevious}
           aria-label="Previous image"
         >
@@ -66,7 +66,7 @@ export default function ProjectImages({ images, onDelete = null }) {
         </div>
 
         <button
-          className="glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-12 w-12 md:h-16 md:w-16 flex justify-center items-center text-orange-500 text-2xl md:text-3xl font-bold transition-all duration-300 hover-lift hover:scale-110"
+          className="glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-12 w-12 md:h-16 md:w-16 flex justify-center items-center text-orange-500 text-2xl md:text-3xl font-bold transition-colors duration-300"
           onClick={goToNext}
           aria-label="Next image"
         >

@@ -262,7 +262,7 @@ export default function MasterTimeline({
 
   const openWorkEditor = (item) => {
     if (!item) {
-      openWorkResearchEdit(null, workResearchFields);
+      openWorkResearchEdit(null, workResearchFields, "Add Work/Research Experience");
       return;
     }
     openWorkResearchEdit(
@@ -276,13 +276,14 @@ export default function MasterTimeline({
           ? item.tags
           : [],
       },
-      workResearchFields
+      workResearchFields,
+      `Edit ${item.type === "research" ? "Research" : "Work"}: ${item.title || "Experience"}`
     );
   };
 
   const openEducationEditor = (item) => {
     if (!item) {
-      openTimelineEdit(null, educationTimelineFields);
+      openTimelineEdit(null, educationTimelineFields, "Add Timeline Course");
       return;
     }
     openTimelineEdit(
@@ -296,7 +297,8 @@ export default function MasterTimeline({
           ? item.tags
           : [],
       },
-      educationTimelineFields
+      educationTimelineFields,
+      `Edit Course: ${item.course_name || item.title || "Course"}`
     );
   };
 

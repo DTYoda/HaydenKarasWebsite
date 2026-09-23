@@ -2,6 +2,10 @@ import { createServerClient, createServiceRoleClient } from '@/lib/supabase';
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 export async function POST(req) {
   try {
     // Check admin authentication
@@ -16,6 +20,7 @@ export async function POST(req) {
     const formData = await req.formData();
     const file = formData.get('file');
     const projectId = formData.get('projectId');
+    const folder = formData.get('folder');
     const fileName = formData.get('fileName');
 
     if (!file) {
@@ -25,12 +30,29 @@ export async function POST(req) {
     // Use service role client to bypass RLS for admin operations
     const supabase = createServiceRoleClient();
     
-    // Create a unique file path
-    const fileExt = file.name.split('.').pop();
-    const uniqueFileName = fileName || `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = projectId 
-      ? `projects/${projectId}/${uniqueFileName}`
-      : `projects/temp/${uniqueFileName}`;
+    // Create a unique, storage-safe file path (spaces/special chars break Supabase keys)
+    const fileExt = String(file.name || "").split(".").pop()?.toLowerCase() || "jpg";
+    const rawName =
+      fileName ||
+      `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const uniqueFileName = String(rawName)
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-zA-Z0-9._-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^\.+|\.+$/g, "");
+    const safeFileName =
+      uniqueFileName && uniqueFileName.includes(".")
+        ? uniqueFileName
+        : `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const safeFolder = String(folder || "")
+      .replace(/[^a-zA-Z0-9/_-]/g, "")
+      .replace(/^\/+|\/+$/g, "");
+    const filePath = projectId
+      ? `projects/${projectId}/${safeFileName}`
+      : safeFolder
+        ? `${safeFolder}/${safeFileName}`
+        : `projects/temp/${safeFileName}`;
 
     // Read file as ArrayBuffer (Supabase accepts ArrayBuffer, Blob, or File)
     const arrayBuffer = await file.arrayBuffer();

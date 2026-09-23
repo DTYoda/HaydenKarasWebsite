@@ -3,7 +3,8 @@ import NewProjectPage from "@/app/_components/newprojectpage";
 
 // Disable caching to ensure fresh data on refresh
 export const revalidate = 0;
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export default async function ProjectPage({ params }) {
   const { project } = params; // `params` contains the dynamic URL segments

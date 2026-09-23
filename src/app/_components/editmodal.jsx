@@ -2,26 +2,97 @@
 
 import { useState, useEffect } from "react";
 
+function toLineValue(value) {
+  if (Array.isArray(value)) return value.join("\n");
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.join("\n");
+    } catch {
+      return value;
+    }
+  }
+  return value || "";
+}
+
+function toPairLineValue(value) {
+  const pairs = (() => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  })();
+
+  return pairs
+    .map((pair) => {
+      if (Array.isArray(pair)) return `${pair[0] || ""} | ${pair[1] || ""}`;
+      if (pair && typeof pair === "object") {
+        return `${pair.url || pair.link || ""} | ${pair.label || pair.title || ""}`;
+      }
+      return String(pair || "");
+    })
+    .join("\n");
+}
+
+function prepareInitialForm(initialData, fields) {
+  const next = { ...initialData };
+  fields.forEach((field) => {
+    if (field.type === "stringlist") {
+      next[field.name] = toLineValue(next[field.name]);
+    }
+    if (field.type === "pairlist") {
+      next[field.name] = toPairLineValue(next[field.name]);
+    }
+    if (!initialData.id && field.type === "select" && !next[field.name]) {
+      next[field.name] = "";
+    }
+    if (field.type === "multiselect" && !Array.isArray(next[field.name])) {
+      next[field.name] = [];
+    }
+  });
+  return next;
+}
+
+function serializeForm(formData, fields) {
+  const payload = { ...formData };
+  fields.forEach((field) => {
+    if (field.type === "stringlist") {
+      payload[field.name] = JSON.stringify(
+        String(formData[field.name] || "")
+          .split("\n")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      );
+    }
+    if (field.type === "pairlist") {
+      payload[field.name] = JSON.stringify(
+        String(formData[field.name] || "")
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => {
+            const [left, ...rest] = line.split("|");
+            return [left.trim(), rest.join("|").trim()];
+          })
+          .filter((pair) => pair[0] && pair[1])
+      );
+    }
+  });
+  return payload;
+}
+
 export default function EditModal({ isOpen, onClose, onSave, title, fields, initialData = {} }) {
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState(() => prepareInitialForm(initialData, fields));
 
   useEffect(() => {
-    // Reset form data when modal opens/closes or initialData changes
     if (isOpen) {
-      // If it's a new item (no id), set defaults for select fields
-      const defaultData = { ...initialData };
-      if (!initialData.id) {
-        fields.forEach(field => {
-          if (field.type === "select" && field.options && field.options.length > 0 && !defaultData[field.name]) {
-            // Don't set a default - let user select
-            defaultData[field.name] = "";
-          }
-          if (field.type === "multiselect" && !Array.isArray(defaultData[field.name])) {
-            defaultData[field.name] = [];
-          }
-        });
-      }
-      setFormData(defaultData);
+      setFormData(prepareInitialForm(initialData, fields));
     }
   }, [initialData, isOpen, fields]);
 
@@ -29,10 +100,9 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Validate required fields (check for null, undefined, or empty string)
+
     const missingFields = fields
-      .filter(field => {
+      .filter((field) => {
         if (!field.required) return false;
         const value = formData[field.name];
         if (field.type === "multiselect") {
@@ -40,14 +110,14 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
         }
         return value === null || value === undefined || value === "";
       })
-      .map(field => field.label);
-    
+      .map((field) => field.label);
+
     if (missingFields.length > 0) {
       alert(`Please fill in all required fields: ${missingFields.join(", ")}`);
       return;
     }
-    
-    onSave(formData);
+
+    onSave(serializeForm(formData, fields));
   };
 
   const handleChange = (name, value) => {
@@ -73,6 +143,9 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
       : [...current, optionValue];
     handleChange(fieldName, next);
   };
+
+  const inputClass =
+    "w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none";
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
@@ -106,19 +179,27 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
               <label className="block text-sm font-semibold text-gray-300 mb-2">
                 {field.label}
               </label>
-              {field.type === "textarea" ? (
+              {field.type === "textarea" || field.type === "stringlist" || field.type === "pairlist" ? (
                 <textarea
                   value={formData[field.name] || ""}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
-                  rows={field.rows || 4}
+                  className={inputClass}
+                  rows={field.rows || (field.type === "textarea" ? 4 : 6)}
                   required={field.required}
+                  placeholder={
+                    field.placeholder ||
+                    (field.type === "stringlist"
+                      ? "One item per line"
+                      : field.type === "pairlist"
+                        ? "url | label"
+                        : undefined)
+                  }
                 />
               ) : field.type === "select" ? (
                 <select
                   value={formData[field.name] || ""}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+                  className={inputClass}
                   required={field.required}
                 >
                   <option value="">-- Select {field.label} --</option>
@@ -133,7 +214,7 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
                   type="number"
                   value={formData[field.name] || ""}
                   onChange={(e) => handleChange(field.name, parseInt(e.target.value))}
-                  className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+                  className={inputClass}
                   required={field.required}
                   min={field.min}
                   max={field.max}
@@ -170,14 +251,17 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
                   type={field.type || "text"}
                   value={formData[field.name] || ""}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full bg-gray-900/50 border border-orange-500/30 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
+                  className={inputClass}
                   required={field.required}
                 />
               )}
+              {field.helpText ? (
+                <p className="text-xs text-gray-500 mt-1">{field.helpText}</p>
+              ) : null}
             </div>
           ))}
 
-          <div className="flex gap-4 mt-6">
+          <div className="flex gap-4 mt-6 sticky bottom-0 bg-[#111]/90 backdrop-blur py-3">
             <button
               type="submit"
               className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:scale-105"
@@ -197,4 +281,3 @@ export default function EditModal({ isOpen, onClose, onSave, title, fields, init
     </div>
   );
 }
-

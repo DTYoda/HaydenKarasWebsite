@@ -1,6 +1,11 @@
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase';
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getWriteAction } from "@/lib/api-action";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 function normalizeYearsExperience(value) {
   const parsed = Number(value);
@@ -263,8 +268,9 @@ export async function POST(req) {
       );
     }
     const supabase = createServiceRoleClient();
+    const action = getWriteAction(body);
 
-    if (body.type == "new") {
+    if (action == "new") {
       const normalizedName = String(body.name || "").trim();
       // Validate required fields
       if (!body.category || !normalizedName) {
@@ -307,7 +313,7 @@ export async function POST(req) {
         }, { status: 500 });
       }
       return NextResponse.json({ success: true, message: "Data received!", data }, { status: 200 });
-    } else if (body.type == "edit") {
+    } else if (action == "edit") {
       const oldName = String(body.oldName || "").trim();
       const newName = String(body.name || "").trim();
       if (!body.category || !newName) {
@@ -355,7 +361,7 @@ export async function POST(req) {
         await propagateSkillMetadata(supabase, body.id, oldName, newName, body.category);
       }
       return NextResponse.json({ success: true, message: "Data received!", data: body }, { status: 200 });
-    } else if (body.type == "delete") {
+    } else if (action == "delete") {
       if (!body.id) {
         return NextResponse.json(
           { success: false, message: "Skill id is required for delete" },

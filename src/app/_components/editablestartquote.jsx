@@ -19,92 +19,51 @@ export default function EditableStartQuote({
   const [links, setLinks] = useState(initialLinks || []);
   const { openEditModal, EditModalComponent } = useEditable(
     "pagecontent",
-    () => {
-      fetchContent();
+    (result) => {
+      const item = result?.data;
+      if (!item?.key) return;
+      if (item.key === `${page}-${section}-quote`) setQuote(item.content);
+      if (item.key === `${page}-${section}-author`) setAuthor(item.content);
+      if (item.key === `${page}-${section}-links`) {
+        try {
+          setLinks(JSON.parse(item.content));
+        } catch {
+          setLinks(initialLinks || []);
+        }
+      }
     }
   );
 
   useEffect(() => {
-    fetchContent();
-  }, []);
-
-  const fetchContent = async () => {
-    try {
-      const response = await fetch(
-        `/api/pagecontent?page=${page}&section=${section}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.data && data.data.length > 0) {
-          const quoteData = data.data.find(
-            (c) => c.key === `${page}-${section}-quote`
-          );
-          const authorData = data.data.find(
-            (c) => c.key === `${page}-${section}-author`
-          );
-          const linksData = data.data.find(
-            (c) => c.key === `${page}-${section}-links`
-          );
-
-          if (quoteData) setQuote(quoteData.content);
-          if (authorData) setAuthor(authorData.content);
-          if (linksData) {
-            try {
-              setLinks(JSON.parse(linksData.content));
-            } catch (e) {
-              setLinks(initialLinks);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching content:", error);
-    }
-  };
+    setQuote(initialQuote || "");
+    setAuthor(initialAuthor || "");
+    setLinks(initialLinks || []);
+  }, [initialQuote, initialAuthor, initialLinks]);
 
   const quoteFields = [
     { name: "content", label: "Quote", type: "textarea", required: true },
   ];
-
   const authorFields = [
     { name: "content", label: "Author", type: "text", required: true },
   ];
-
   const linksFields = [
     {
       name: "content",
-      label: "Links (JSON array of [url, label] pairs)",
-      type: "textarea",
-      required: true,
+      label: "Links",
+      type: "pairlist",
+      required: false,
+      helpText: "One per line: url | label",
     },
   ];
 
   return (
     <>
       <div className="max-w-6xl w-full px-6 grow flex flex-col justify-start pt-32 relative">
-        {isAuthenticated && (
-          <div className="absolute top-4 right-4 z-10 flex gap-2">
-            <EditButton
-              onClick={() =>
-                openEditModal(
-                  {
-                    key: `${page}-${section}-quote`,
-                    page,
-                    section,
-                    content: quote,
-                    type: "text",
-                  },
-                  quoteFields
-                )
-              }
-              className="bg-blue-500 hover:bg-blue-600"
-            />
-          </div>
-        )}
         <div className="relative z-10 fade-in py-8">
           <div className="mb-6 sm:mb-8 relative">
             {isAuthenticated && (
               <EditButton
+                title="Edit page quote"
                 onClick={() =>
                   openEditModal(
                     {
@@ -114,10 +73,10 @@ export default function EditableStartQuote({
                       content: quote,
                       type: "text",
                     },
-                    quoteFields
+                    quoteFields,
+                    "Edit Page Quote"
                   )
                 }
-                className="absolute -top-2 -right-2 z-10 bg-blue-500 hover:bg-blue-600"
               />
             )}
             <span className="mono text-orange-500 text-xl sm:text-2xl md:text-3xl">
@@ -133,6 +92,7 @@ export default function EditableStartQuote({
           <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mt-6 sm:mt-8 mb-6 sm:mb-8 relative">
             {isAuthenticated && (
               <EditButton
+                title="Edit quote author"
                 onClick={() =>
                   openEditModal(
                     {
@@ -142,10 +102,10 @@ export default function EditableStartQuote({
                       content: author,
                       type: "text",
                     },
-                    authorFields
+                    authorFields,
+                    "Edit Quote Author"
                   )
                 }
-                className="absolute -top-2 -right-2 z-10 bg-blue-500 hover:bg-blue-600"
               />
             )}
             <span className="mono text-orange-500 mr-2 sm:mr-3">{">"}</span>
@@ -154,6 +114,7 @@ export default function EditableStartQuote({
           <div className="flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8 relative">
             {isAuthenticated && (
               <EditButton
+                title="Edit quote links"
                 onClick={() =>
                   openEditModal(
                     {
@@ -163,10 +124,10 @@ export default function EditableStartQuote({
                       content: JSON.stringify(links),
                       type: "json",
                     },
-                    linksFields
+                    linksFields,
+                    "Edit Quote Links"
                   )
                 }
-                className="absolute -top-2 -right-2 z-10 bg-blue-500 hover:bg-blue-600"
               />
             )}
             {links.map((link, id) => (
@@ -182,7 +143,6 @@ export default function EditableStartQuote({
           </div>
         </div>
 
-        {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
           <svg
             className="w-8 h-8 text-orange-500/70"

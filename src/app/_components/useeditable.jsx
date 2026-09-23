@@ -8,7 +8,12 @@ import EditModal from "./editmodal";
 export function useEditable(type, onSaveCallback) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const [editModal, setEditModal] = useState({ isOpen: false, data: null, fields: [] });
+  const [editModal, setEditModal] = useState({
+    isOpen: false,
+    data: null,
+    fields: [],
+    title: null,
+  });
 
   const handleSave = async (data) => {
     try {
@@ -18,64 +23,68 @@ export function useEditable(type, onSaveCallback) {
       switch (type) {
         case "project":
           endpoint = "/api/projectshandler";
-          payload.type = editModal.data ? "edit" : "new";
-          if (payload.type === "edit") payload.id = editModal.data.id;
-          // Convert projectType back to type for the API (but keep projectType in payload for clarity)
-          if (payload.projectType) {
-            payload.projectType = payload.projectType;
+          payload.action = editModal.data ? "edit" : "new";
+          if (payload.action === "edit") payload.id = editModal.data.id;
+          if (payload.type && payload.type !== "edit" && payload.type !== "new") {
+            payload.projectType = payload.projectType || payload.type;
           }
+          delete payload.type;
           break;
         case "skill":
           endpoint = "/api/skillshandler";
-          payload.type = editModal.data ? "edit" : "new";
-          if (payload.type === "edit") {
+          payload.action = editModal.data ? "edit" : "new";
+          if (payload.action === "edit") {
             payload.oldName = editModal.data.name;
             payload.id = editModal.data.id;
           }
+          delete payload.type;
           break;
         case "education":
           endpoint = "/api/educationhandler";
-          payload.type = editModal.data ? "edit" : "new";
-          if (payload.type === "edit") {
+          payload.action = editModal.data ? "edit" : "new";
+          if (payload.action === "edit") {
             payload.oldName = editModal.data.name;
             payload.id = editModal.data.id;
           }
+          delete payload.type;
           break;
         case "educationtimeline":
           endpoint = "/api/educationtimelinehandler";
-          payload.type = editModal.data ? "edit" : "new";
-          if (payload.type === "edit") payload.id = editModal.data.id;
+          payload.action = editModal.data ? "edit" : "new";
+          if (payload.action === "edit") payload.id = editModal.data.id;
+          delete payload.type;
           break;
         case "workresearch":
           endpoint = "/api/workresearchhandler";
-          payload.type = editModal.data ? "edit" : "new";
-          if (payload.type === "edit") payload.id = editModal.data.id;
-          break;
-        case "topskill":
-          endpoint = "/api/topskills";
-          payload.type = editModal.data ? "edit" : "new";
-          if (payload.type === "edit") payload.id = editModal.data.id;
+          payload.action = editModal.data ? "edit" : "new";
+          if (payload.action === "edit") payload.id = editModal.data.id;
+          delete payload.type;
           break;
         case "quickstat":
           endpoint = "/api/quickstats";
-          payload.type = editModal.data ? "edit" : "new";
-          if (payload.type === "edit") payload.id = editModal.data.id;
+          payload.action = editModal.data ? "edit" : "new";
+          if (payload.action === "edit") payload.id = editModal.data.id;
+          delete payload.type;
           break;
         case "static":
           endpoint = "/api/staticcontent";
-          payload.type = editModal.data ? "edit" : "new";
+          payload.action = editModal.data ? "edit" : "new";
+          delete payload.type;
           break;
         case "pagecontent":
           endpoint = "/api/pagecontent";
-          const operationType = editModal.data ? "edit" : "new";
-          // For pagecontent, we need to preserve key, page, section, contentType
+          payload.action = editModal.data ? "edit" : "new";
           if (editModal.data) {
             payload.key = editModal.data.key;
             payload.page = editModal.data.page;
             payload.section = editModal.data.section;
-            payload.contentType = editModal.data.type || "text";
+            payload.contentType =
+              editModal.data.contentType ||
+              (["text", "json", "html", "number"].includes(editModal.data.type)
+                ? editModal.data.type
+                : "text");
           }
-          payload.type = operationType;
+          delete payload.type;
           break;
         default:
           return;
@@ -84,17 +93,19 @@ export function useEditable(type, onSaveCallback) {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify(payload),
       });
 
+      const result = await response.json().catch(() => ({}));
+
       if (response.ok) {
-        setEditModal({ isOpen: false, data: null, fields: [] });
-        if (onSaveCallback) onSaveCallback();
+        setEditModal({ isOpen: false, data: null, fields: [], title: null });
+        if (onSaveCallback) onSaveCallback(result);
         router.refresh();
       } else {
-        const error = await response.json();
-        console.error("Save error:", error);
-        alert(`Error: ${error.message || error.error?.message || "Failed to save"}\n\nDetails: ${JSON.stringify(error, null, 2)}`);
+        console.error("Save error:", result);
+        alert(`Error: ${result.message || result.error?.message || "Failed to save"}`);
       }
     } catch (error) {
       console.error("Error saving:", error);
@@ -107,7 +118,7 @@ export function useEditable(type, onSaveCallback) {
 
     try {
       let endpoint = "";
-      let payload = { type: "delete" };
+      let payload = { action: "delete" };
 
       switch (type) {
         case "project":
@@ -131,10 +142,6 @@ export function useEditable(type, onSaveCallback) {
           endpoint = "/api/workresearchhandler";
           payload.id = id;
           break;
-        case "topskill":
-          endpoint = "/api/topskills";
-          payload.id = id;
-          break;
         case "quickstat":
           endpoint = "/api/quickstats";
           payload.id = id;
@@ -154,6 +161,7 @@ export function useEditable(type, onSaveCallback) {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify(payload),
       });
 
@@ -169,20 +177,21 @@ export function useEditable(type, onSaveCallback) {
     }
   };
 
-  const openEditModal = (data, fields) => {
-    setEditModal({ isOpen: true, data, fields });
+  const openEditModal = (data, fields, title = null) => {
+    setEditModal({ isOpen: true, data, fields, title });
   };
 
   const closeEditModal = () => {
-    setEditModal({ isOpen: false, data: null, fields: [] });
+    setEditModal({ isOpen: false, data: null, fields: [], title: null });
   };
 
+  const defaultTitle = `${editModal.data ? "Edit" : "Add"} ${type}`;
   const EditModalComponent = editModal.isOpen ? (
     <EditModal
       isOpen={editModal.isOpen}
       onClose={closeEditModal}
       onSave={handleSave}
-      title={`${editModal.data ? "Edit" : "Add"} ${type}`}
+      title={editModal.title || defaultTitle}
       fields={editModal.fields || []}
       initialData={editModal.data || {}}
     />
@@ -195,4 +204,3 @@ export function useEditable(type, onSaveCallback) {
     EditModalComponent,
   };
 }
-

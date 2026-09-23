@@ -1,6 +1,23 @@
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase';
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getWriteAction } from "@/lib/api-action";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
+const CONTENT_TYPES = new Set(["text", "json", "html", "number"]);
+
+function getContentType(body) {
+  if (body?.contentType && CONTENT_TYPES.has(body.contentType)) {
+    return body.contentType;
+  }
+  if (body?.type && CONTENT_TYPES.has(body.type)) {
+    return body.type;
+  }
+  return "text";
+}
 
 export async function POST(req) {
   try {
@@ -19,34 +36,32 @@ export async function POST(req) {
       );
     }
     const supabase = createServiceRoleClient();
+    const action = getWriteAction(body);
 
-    if (body.type == "new" || body.type == "edit") {
-      // Check if exists
+    if (action == "new" || action == "edit") {
       const { data: existing } = await supabase
         .from('page_content')
         .select('id')
         .eq('key', body.key)
-        .single();
+        .maybeSingle();
 
       let result;
       if (existing) {
-        // Update
         const { data, error } = await supabase
           .from('page_content')
           .update({
             page: body.page,
             section: body.section,
             content: body.content,
-            type: body.contentType || body.type || "text"
+            type: getContentType(body)
           })
           .eq('key', body.key)
           .select()
           .single();
-        
+
         if (error) throw error;
         result = data;
       } else {
-        // Insert
         const { data, error } = await supabase
           .from('page_content')
           .insert({
@@ -54,17 +69,17 @@ export async function POST(req) {
             page: body.page,
             section: body.section,
             content: body.content,
-            type: body.contentType || body.type || "text"
+            type: getContentType(body)
           })
           .select()
           .single();
-        
+
         if (error) throw error;
         result = data;
       }
 
       return NextResponse.json({ success: true, message: "Content saved!", data: result }, { status: 200 });
-    } else if (body.type == "delete") {
+    } else if (action == "delete") {
       const { error } = await supabase
         .from('page_content')
         .delete()
@@ -87,12 +102,12 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const page = searchParams.get('page');
     const section = searchParams.get('section');
-    
+
     let query = supabase.from('page_content').select('*');
-    
+
     if (page) query = query.eq('page', page);
     if (section) query = query.eq('section', section);
-    
+
     const { data, error } = await query;
 
     if (error) throw error;

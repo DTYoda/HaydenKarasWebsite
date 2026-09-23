@@ -121,7 +121,7 @@ export default function EducationTimeline({ onMutate }) {
         {isAuthenticated && (
           <div className="flex justify-end mb-6">
             <AddButton
-              onClick={() => openTimelineEdit(null, timelineFields)}
+              onClick={() => openTimelineEdit(null, timelineFields, "Add Timeline Course")}
               label="Add Course"
             />
           </div>
@@ -160,7 +160,11 @@ export default function EducationTimeline({ onMutate }) {
                             <EditButton
                               onClick={(event) => {
                                 event.stopPropagation();
-                                openTimelineEdit(course, timelineFields);
+                                openTimelineEdit(
+                                  course,
+                                  timelineFields,
+                                  `Edit Course: ${course.course_name || course.title || "Course"}`
+                                );
                               }}
                               className="top-2 right-2"
                             />

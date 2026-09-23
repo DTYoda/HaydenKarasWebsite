@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { parseJsonField } from "@/lib/projects";
 
 export default function ProjectEditModal({
   isOpen,
@@ -24,7 +25,6 @@ export default function ProjectEditModal({
     date: "",
     highlights: [],
   });
-  const initializedProjectRef = useRef(null);
   const [skillTags, setSkillTags] = useState([]);
   const [skillTagMap, setSkillTagMap] = useState({});
   const [skillTagById, setSkillTagById] = useState({});
@@ -33,7 +33,7 @@ export default function ProjectEditModal({
     if (!isOpen) return;
     const loadSkillTags = async () => {
       try {
-        const response = await fetch("/api/skillshandler");
+        const response = await fetch("/api/skillshandler", { cache: "no-store" });
         if (!response.ok) return;
         const payload = await response.json();
         const options = (payload.data || [])
@@ -64,145 +64,60 @@ export default function ProjectEditModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (projectData && isOpen) {
-      // Only initialize if this is a different project
-      if (initializedProjectRef.current === projectData.url_title) {
-        return; // Don't reset if already initialized with this project
-      }
-      initializedProjectRef.current = projectData.url_title;
-      // Parse JSON fields
-      let descriptions = [];
-      let links = [];
-      let technologies = [];
+    if (!projectData || !isOpen) return;
 
-      try {
-        const parsed = JSON.parse(projectData.descriptions || "[]");
-        if (Array.isArray(parsed)) {
-          // New format: array of objects with title/content
-          descriptions = parsed.map((desc, index) => {
-            if (
-              typeof desc === "object" &&
-              desc !== null &&
-              desc.content !== undefined
-            ) {
-              // Already an object with title/content
-              return {
-                title: desc.title || `Paragraph ${index + 1}`,
-                content: desc.content || "",
-              };
-            } else {
-              // String format - convert to object
-              return {
-                title: `Paragraph ${index + 1}`,
-                content: desc || "",
-              };
-            }
-          });
-        } else if (typeof parsed === "object" && parsed !== null) {
-          // Old format: object with keys like { "Description": "...", "Development": "..." }
-          descriptions = Object.keys(parsed).map((key) => ({
-            title: key,
-            content: parsed[key] || "",
-          }));
-        } else {
-          descriptions = [{ title: "Paragraph 1", content: "" }];
+    const parsedDescriptions = parseJsonField(projectData.descriptions, []);
+    let descriptions = [];
+    if (Array.isArray(parsedDescriptions)) {
+      descriptions = parsedDescriptions.map((desc, index) => {
+        if (typeof desc === "object" && desc !== null) {
+          return {
+            title: desc.title || `Paragraph ${index + 1}`,
+            content: desc.content || "",
+          };
         }
-        if (descriptions.length === 0)
-          descriptions = [{ title: "Paragraph 1", content: "" }];
-      } catch (e) {
-        console.error("Error parsing descriptions:", e);
-        descriptions = [{ title: "Paragraph 1", content: "" }];
-      }
-
-      try {
-        links = JSON.parse(projectData.links || "[]");
-        if (!Array.isArray(links)) links = [];
-      } catch (e) {
-        links = [];
-      }
-
-      try {
-        technologies = JSON.parse(projectData.technologies || "[]");
-        if (!Array.isArray(technologies)) technologies = [];
-        // Ensure each technology has all fields
-        technologies = technologies.map((tech) => ({
-          id: String(tech.id || tech.skill_id || "").trim(),
-          title: tech.title || "",
-          link: tech.link || "",
-          category: tech.category || "",
-          proficiency: tech.proficiency || "",
-          color: tech.color || "",
-          icon: tech.icon || "",
-        }));
-      } catch (e) {
-        technologies = [];
-      }
-
-      let images = [];
-      try {
-        images = JSON.parse(projectData.images || "[]");
-        if (!Array.isArray(images)) images = [];
-      } catch (e) {
-        images = [];
-      }
-
-      let highlights = [];
-      try {
-        highlights = JSON.parse(projectData.highlights || "[]");
-        if (!Array.isArray(highlights)) highlights = [];
-        // Ensure each highlight has all fields
-        highlights = highlights.map((h) => ({
-          icon: h.icon || "",
-          title: h.title || "",
-          description: h.description || "",
-        }));
-      } catch (e) {
-        highlights = [];
-      }
-
-      // Default highlights if none exist
-      if (highlights.length === 0) {
-        highlights = [
-          { icon: "🚀", title: "Full-Stack", description: "Complete Application" },
-          { icon: "⚡", title: "Modern Stack", description: "Latest Technologies" },
-          { icon: "🎯", title: "Production Ready", description: "Deployed & Live" },
-          { icon: "💡", title: "Innovative", description: "Unique Solutions" },
-        ];
-      }
-
-      setFormData({
-        urlTitle: projectData.url_title || "",
-        title: projectData.title || "",
-        descriptions:
-          descriptions.length > 0
-            ? descriptions
-            : [{ title: "Paragraph 1", content: "" }],
-        links: links.length > 0 ? links : [{ title: "", link: "" }],
-        technologies:
-          technologies.length > 0
-            ? technologies
-            : [
-                {
-                  id: "",
-                  title: "",
-                  link: "",
-                  category: "",
-                  proficiency: "",
-                  color: "",
-                  icon: "",
-                },
-              ],
-        images: images,
-        projectType: projectData.type || "website",
-        date: projectData.date || "",
-        highlights: highlights.length > 0 ? highlights : [
-          { icon: "🚀", title: "", description: "" },
-          { icon: "⚡", title: "", description: "" },
-          { icon: "🎯", title: "", description: "" },
-          { icon: "💡", title: "", description: "" },
-        ],
+        return {
+          title: `Paragraph ${index + 1}`,
+          content: desc || "",
+        };
       });
+    } else if (parsedDescriptions && typeof parsedDescriptions === "object") {
+      descriptions = Object.keys(parsedDescriptions).map((key) => ({
+        title: key,
+        content: parsedDescriptions[key] || "",
+      }));
     }
+
+    const parsedLinks = parseJsonField(projectData.links, []);
+    const parsedTechnologies = parseJsonField(projectData.technologies, []);
+    const parsedImages = parseJsonField(projectData.images, []);
+    const parsedHighlights = parseJsonField(projectData.highlights, []);
+
+    const technologies = (Array.isArray(parsedTechnologies) ? parsedTechnologies : []).map((tech) => ({
+      id: String(tech.id || tech.skill_id || "").trim(),
+      title: tech.title || "",
+      link: tech.link || "",
+      category: tech.category || "",
+      proficiency: tech.proficiency || "",
+      color: tech.color || "",
+      icon: tech.icon || "",
+    }));
+
+    setFormData({
+      urlTitle: projectData.url_title || projectData.urlTitle || "",
+      title: projectData.title || "",
+      descriptions,
+      links: Array.isArray(parsedLinks) ? parsedLinks : [],
+      technologies,
+      images: Array.isArray(parsedImages) ? parsedImages : [],
+      projectType: projectData.type || projectData.projectType || "",
+      date: projectData.date || "",
+      highlights: (Array.isArray(parsedHighlights) ? parsedHighlights : []).map((h) => ({
+        icon: h.icon || "",
+        title: h.title || "",
+        description: h.description || "",
+      })),
+    });
   }, [projectData, isOpen]);
 
   useEffect(() => {
@@ -236,15 +151,9 @@ export default function ProjectEditModal({
         if (typeof d === "object" && d.content !== undefined) {
           return { title: d.title || "", content: d.content || "" };
         }
-        // If it's a string, convert to object
         return { title: "", content: d || "" };
       })
       .filter((d) => d.content && d.content.trim() !== "");
-
-    // Ensure at least one description
-    if (descriptionObjects.length === 0) {
-      descriptionObjects.push({ title: "", content: "" });
-    }
 
     const submitData = {
       urlTitle: formData.urlTitle,
@@ -291,7 +200,6 @@ export default function ProjectEditModal({
       ),
     };
 
-    console.log("Submitting project data:", submitData);
     onSave(submitData);
   };
 
@@ -651,6 +559,10 @@ export default function ProjectEditModal({
               </button>
             </div>
 
+            {formData.descriptions.length === 0 ? (
+              <p className="text-sm text-gray-500">No description sections yet.</p>
+            ) : null}
+
             {formData.descriptions.map((desc, index) => {
               const descObj =
                 typeof desc === "object"
@@ -692,7 +604,6 @@ export default function ProjectEditModal({
                       type="button"
                       onClick={() => removeDescription(index)}
                       className="bg-red-500 hover:bg-red-600 text-white rounded-lg px-3 py-2 font-semibold transition-all"
-                      disabled={formData.descriptions.length === 1}
                     >
                       ×
                     </button>
@@ -723,6 +634,10 @@ export default function ProjectEditModal({
                 + Add Link
               </button>
             </div>
+
+            {formData.links.length === 0 ? (
+              <p className="text-sm text-gray-500">No links yet.</p>
+            ) : null}
 
             {formData.links.map((link, index) => (
               <div key={index} className="flex gap-2 items-center">
@@ -838,7 +753,6 @@ export default function ProjectEditModal({
                           type="button"
                           onClick={() => removeImage(index)}
                           className="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded transition-all"
-                          disabled={formData.images.length === 1}
                         >
                           ×
                         </button>
@@ -872,6 +786,10 @@ export default function ProjectEditModal({
               <p className="text-xs text-yellow-300">
                 No skills are available yet. Add tags in Skills first.
               </p>
+            ) : null}
+
+            {formData.technologies.length === 0 ? (
+              <p className="text-sm text-gray-500">No technologies yet.</p>
             ) : null}
 
             {formData.technologies.map((tech, index) => (
@@ -1001,6 +919,10 @@ export default function ProjectEditModal({
               </button>
             </div>
 
+            {formData.highlights.length === 0 ? (
+              <p className="text-sm text-gray-500">No highlights yet.</p>
+            ) : null}
+
             {formData.highlights.map((highlight, index) => (
               <div
                 key={index}
@@ -1064,7 +986,7 @@ export default function ProjectEditModal({
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-4 mt-6">
+          <div className="flex gap-4 mt-6 sticky bottom-0 bg-[#111]/95 backdrop-blur py-3 border-t border-orange-500/20">
             <button
               type="submit"
               className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:scale-105"

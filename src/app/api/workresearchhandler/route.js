@@ -2,6 +2,11 @@ import { createServiceRoleClient } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { getSkillCatalog, resolveTagLabels, sanitizeTagSelection } from "@/lib/tag-catalog";
+import { getWriteAction } from "@/lib/api-action";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 function normalizeHighlights(highlights) {
   if (Array.isArray(highlights)) {
@@ -71,7 +76,7 @@ export async function POST(req) {
     const supabase = createServiceRoleClient();
     const skillCatalog = await getSkillCatalog(supabase);
 
-    if (body.type === "new") {
+    if (getWriteAction(body) === "new") {
       const normalizedTags = sanitizeTagSelection(body.tags, skillCatalog);
       if (normalizedTags.unknown.length > 0) {
         return NextResponse.json(
@@ -109,7 +114,7 @@ export async function POST(req) {
       return NextResponse.json({ success: true, data }, { status: 200 });
     }
 
-    if (body.type === "edit") {
+    if (getWriteAction(body) === "edit") {
       const normalizedTags = sanitizeTagSelection(body.tags, skillCatalog);
       if (normalizedTags.unknown.length > 0) {
         return NextResponse.json(
@@ -148,7 +153,7 @@ export async function POST(req) {
       return NextResponse.json({ success: true, data }, { status: 200 });
     }
 
-    if (body.type === "delete") {
+    if (getWriteAction(body) === "delete") {
       const { error } = await supabase
         .from("work_research_experience")
         .delete()
