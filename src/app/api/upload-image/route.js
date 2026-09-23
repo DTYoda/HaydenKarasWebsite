@@ -30,15 +30,29 @@ export async function POST(req) {
     // Use service role client to bypass RLS for admin operations
     const supabase = createServiceRoleClient();
     
-    // Create a unique file path
-    const fileExt = file.name.split('.').pop();
-    const uniqueFileName = fileName || `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const safeFolder = String(folder || "").replace(/[^a-zA-Z0-9/_-]/g, "").replace(/^\/+|\/+$/g, "");
-    const filePath = projectId 
-      ? `projects/${projectId}/${uniqueFileName}`
+    // Create a unique, storage-safe file path (spaces/special chars break Supabase keys)
+    const fileExt = String(file.name || "").split(".").pop()?.toLowerCase() || "jpg";
+    const rawName =
+      fileName ||
+      `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const uniqueFileName = String(rawName)
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-zA-Z0-9._-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^\.+|\.+$/g, "");
+    const safeFileName =
+      uniqueFileName && uniqueFileName.includes(".")
+        ? uniqueFileName
+        : `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const safeFolder = String(folder || "")
+      .replace(/[^a-zA-Z0-9/_-]/g, "")
+      .replace(/^\/+|\/+$/g, "");
+    const filePath = projectId
+      ? `projects/${projectId}/${safeFileName}`
       : safeFolder
-        ? `${safeFolder}/${uniqueFileName}`
-      : `projects/temp/${uniqueFileName}`;
+        ? `${safeFolder}/${safeFileName}`
+        : `projects/temp/${safeFileName}`;
 
     // Read file as ArrayBuffer (Supabase accepts ArrayBuffer, Blob, or File)
     const arrayBuffer = await file.arrayBuffer();

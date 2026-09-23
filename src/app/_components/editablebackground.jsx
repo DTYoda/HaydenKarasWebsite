@@ -73,7 +73,6 @@ export default function EditableBackground({ initialData }) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("folder", "about");
-      formData.append("fileName", file.name);
 
       const uploadResponse = await fetch("/api/upload-image", {
         method: "POST",

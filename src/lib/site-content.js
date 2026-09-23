@@ -56,34 +56,109 @@ export function mapQuote(map, page, section, fallback = {}) {
   };
 }
 
+const DEFAULT_WHOAMI = {
+  title: "Who Am I?",
+  subtitle: "Always Curious, Forever Learning",
+  paragraph1:
+    'Hi, I\'m <span class="text-orange-500 font-semibold">Hayden Karas</span>, a Computer Science major from Cranston, Rhode Island. I am currently a freshman at <span class="text-orange-500 font-semibold">Carnegie Mellon University\'s</span> School of Computer Science. I\'ve always loved learning, from physics to technology to engineering, and began coding in fifth grade. I value my relationships more than anything else in the world, and try to learn something new every single day.',
+  paragraph2:
+    "I am an excellent communicator, always ready to share my thoughts and ideas with others. I am also a great problem solver, always looking for the most simple and efficient solutions to problems. With this comes being a leader and listener, always ready to understand and respond to thoughts and ideas, as well as provide my own.",
+  imageUrl: "/CrossArmImage.png",
+};
+
+const DEFAULT_BACKGROUND = {
+  title: "My Journey",
+  subtitle: "Pursuing Growth and Knowledge",
+  paragraph1:
+    'My journey into the world of technology began with a fascination for how things work and a relentless curiosity to dig deeper. Starting with the idea of creating Minecraft mods in third grade, I started with game development with <span class="text-orange-500 font-semibold">Scratch</span> and then slowly learned new technologies, languages, and frameworks. Entering high school, I began entering technology classes and doing various projects. This resulted in entering the <span class="text-orange-500 font-semibold">SkillsUSA game development competition</span>, winning states two years in a row and placing top 10 nationally twice.',
+  paragraph2:
+    'Aside from Game Development, I also explored full-stack web development through college courses and online courses like <span class="text-orange-500 font-semibold">CS50x</span>. I presented one of my earliest web projects at the University of Rhode Island\'s Computer Science Summit. I also was the captain of my school\'s math team throughout high school, competing there as well, learning advanced math topics as well as leadership and teamwork skills.',
+  imageUrl: "/SkillsUSAImage.jpeg",
+};
+
+const DEFAULT_CONTACT_CONTENT = {
+  availableFor: [
+    "Internships and full-time opportunities",
+    "Game development projects",
+    "Web development collaborations",
+    "Research opportunities",
+    "Open-source contributions",
+  ],
+  links: [
+    ["https://www.linkedin.com/in/haydenkaras/", "LinkedIn"],
+    ["https://github.com/DTYoda", "GitHub"],
+    ["/resume.pdf", "Resume"],
+  ],
+  email: "hkaras1121@gmail.com",
+};
+
 export function mapWhoAmI(map) {
   return {
-    title: pickContent(map, "about-whoami-title"),
-    subtitle: pickContent(map, "about-whoami-subtitle"),
-    paragraph1: pickContent(map, "about-whoami-paragraph1"),
-    paragraph2: pickContent(map, "about-whoami-paragraph2"),
-    imageUrl: pickContent(map, "about-whoami-image", "/CrossArmImage.png"),
+    title: pickContent(map, "about-whoami-title", DEFAULT_WHOAMI.title),
+    subtitle: pickContent(map, "about-whoami-subtitle", DEFAULT_WHOAMI.subtitle),
+    paragraph1: pickContent(
+      map,
+      "about-whoami-paragraph1",
+      DEFAULT_WHOAMI.paragraph1
+    ),
+    paragraph2: pickContent(
+      map,
+      "about-whoami-paragraph2",
+      DEFAULT_WHOAMI.paragraph2
+    ),
+    imageUrl: pickContent(map, "about-whoami-image", DEFAULT_WHOAMI.imageUrl),
   };
 }
 
 export function mapBackground(map) {
   return {
-    title: pickContent(map, "about-background-title"),
-    subtitle: pickContent(map, "about-background-subtitle"),
-    paragraph1: pickContent(map, "about-background-paragraph1"),
-    paragraph2: pickContent(map, "about-background-paragraph2"),
-    imageUrl: pickContent(map, "about-background-image", "/SkillsUSAImage.jpeg"),
+    title: pickContent(map, "about-background-title", DEFAULT_BACKGROUND.title),
+    subtitle: pickContent(
+      map,
+      "about-background-subtitle",
+      DEFAULT_BACKGROUND.subtitle
+    ),
+    paragraph1: pickContent(
+      map,
+      "about-background-paragraph1",
+      DEFAULT_BACKGROUND.paragraph1
+    ),
+    paragraph2: pickContent(
+      map,
+      "about-background-paragraph2",
+      DEFAULT_BACKGROUND.paragraph2
+    ),
+    imageUrl: pickContent(
+      map,
+      "about-background-image",
+      DEFAULT_BACKGROUND.imageUrl
+    ),
   };
 }
 
 export function mapContactContent(map) {
   return {
     availableFor: parseJsonField(
-      pickContent(map, "contact-content-availableFor", "[]"),
-      []
+      pickContent(
+        map,
+        "contact-content-availableFor",
+        JSON.stringify(DEFAULT_CONTACT_CONTENT.availableFor)
+      ),
+      DEFAULT_CONTACT_CONTENT.availableFor
     ),
-    links: parseJsonField(pickContent(map, "contact-content-links", "[]"), []),
-    email: pickContent(map, "contact-content-email"),
+    links: parseJsonField(
+      pickContent(
+        map,
+        "contact-content-links",
+        JSON.stringify(DEFAULT_CONTACT_CONTENT.links)
+      ),
+      DEFAULT_CONTACT_CONTENT.links
+    ),
+    email: pickContent(
+      map,
+      "contact-content-email",
+      DEFAULT_CONTACT_CONTENT.email
+    ),
   };
 }
 

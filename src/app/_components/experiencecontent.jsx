@@ -226,7 +226,7 @@ export default function ExperienceContent() {
             .map((category) => (
               <div
                 key={category}
-                className="glass rounded-lg p-4 border border-orange-500/20"
+                className="glass rounded-lg p-4 border border-orange-500/20 hover-lift transition-all duration-300 hover:border-orange-500/50"
               >
                 <h3 className="text-sm uppercase tracking-wider text-orange-300 font-semibold mb-3">
                   {PROJECT_CATEGORY_LABELS[category] || category}
@@ -235,7 +235,11 @@ export default function ExperienceContent() {
                   {(skillsByCategory[activeSkillType]?.[category] || []).map((entry) => (
                     <div
                       key={entry.skill.id || entry.displayLabel}
-                      className="relative rounded-md border border-white/5 bg-black/20 px-2 py-2"
+                      className={
+                        isAuthenticated
+                          ? "relative rounded-md border border-white/5 bg-black/20 px-2 py-2"
+                          : "relative"
+                      }
                     >
                       {isAuthenticated && (
                         <div className="flex gap-2 mb-2">

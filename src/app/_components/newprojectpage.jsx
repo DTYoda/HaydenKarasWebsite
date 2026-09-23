@@ -617,7 +617,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
                             images.length
                         )
                       }
-                      className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-10 w-10 sm:h-12 sm:w-12 flex justify-center items-center text-orange-500 text-xl sm:text-2xl font-bold transition-all duration-300 hover-lift hover:scale-110"
+                      className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-10 w-10 sm:h-12 sm:w-12 flex justify-center items-center text-orange-500 text-xl sm:text-2xl font-bold transition-colors duration-300"
                       aria-label="Previous image"
                     >
                       {"<"}
@@ -628,7 +628,7 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
                           (selectedImageIndex + 1) % images.length
                         )
                       }
-                      className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-10 w-10 sm:h-12 sm:w-12 flex justify-center items-center text-orange-500 text-xl sm:text-2xl font-bold transition-all duration-300 hover-lift hover:scale-110"
+                      className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 glass hover:bg-orange-500/20 hover:border-orange-500/50 border border-orange-500/20 rounded-full h-10 w-10 sm:h-12 sm:w-12 flex justify-center items-center text-orange-500 text-xl sm:text-2xl font-bold transition-colors duration-300"
                       aria-label="Next image"
                     >
                       {">"}
@@ -673,6 +673,23 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
               {isAuthenticated
                 ? "No images yet. Add your first image!"
                 : "No images available."}
+            </div>
+          )}
+
+          {descriptions[0] && (
+            <div
+              data-tilt-card="off"
+              className="mt-6 glass rounded-2xl p-6 sm:p-8 border border-orange-500/20"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-orange-600 rounded-full"></div>
+                <h2 className="text-xl sm:text-2xl font-bold text-orange-400">
+                  {descriptions[0].title || "Overview"}
+                </h2>
+              </div>
+              <p className="text-gray-300 leading-relaxed text-base sm:text-lg">
+                {descriptions[0].content}
+              </p>
             </div>
           )}
         </div>
@@ -833,14 +850,14 @@ export default function NewProjectPage({ projectData: initialProjectData }) {
           </div>
         )}
 
-        {/* Project Overview / Descriptions */}
-        {descriptions.length > 0 && (
+        {/* Remaining description paragraphs */}
+        {descriptions.length > 1 && (
           <div className="w-full max-w-7xl mb-12 fade-in">
             <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-orange-500">
-              Project Overview
+              Project Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {descriptions.map((desc, index) => (
+              {descriptions.slice(1).map((desc, index) => (
                 <div
                   key={index}
                   className="glass rounded-2xl p-6 hover-lift border border-orange-500/10 hover:border-orange-500/30 transition-all duration-300 relative overflow-hidden group"

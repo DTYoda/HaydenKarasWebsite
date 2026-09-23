@@ -204,7 +204,7 @@ export default function EditableTopSkills({ initialData, initialSettings }) {
               .map((category) => (
               <div
                 key={category}
-                className="glass rounded-lg p-4 border border-orange-500/20"
+                className="glass rounded-lg p-4 border border-orange-500/20 hover-lift transition-all duration-300 hover:border-orange-500/50"
               >
                 <h3 className="text-sm uppercase tracking-wider text-orange-300 font-semibold mb-3">
                   {PROJECT_CATEGORY_LABELS[category] || category}

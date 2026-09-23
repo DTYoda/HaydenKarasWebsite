@@ -11,7 +11,8 @@ const CANDIDATE_SELECTOR = [
 ].join(", ");
 
 const MIN_CARD_WIDTH = 180;
-const MIN_CARD_HEIGHT = 120;
+// Skill category panels sit just under 120px after tags-only layouts.
+const MIN_CARD_HEIGHT = 72;
 
 function getTiltIntensity(rect) {
   const largestSide = Math.max(rect.width, rect.height);

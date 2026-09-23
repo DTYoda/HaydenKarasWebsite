@@ -33,17 +33,42 @@ BEGIN
   END IF;
 END $$;
 
--- Note: Top skills are fetched from the skills table, so ensure skills are populated there
--- This is typically done through the admin interface, but you can add some default skills here if needed:
--- INSERT INTO skills (name, proficiency, category, "order")
--- VALUES 
---   ('JavaScript', 95, 'languages', 0),
---   ('C#', 95, 'languages', 1),
---   ('Unity', 95, 'frameworks', 2),
---   ('Git/GitHub', 95, 'tools', 3),
---   ('Python', 90, 'languages', 4),
---   ('React', 90, 'frameworks', 5),
---   ('REST APIs', 90, 'apis', 6),
---   ('Tailwind CSS', 92, 'frameworks', 7)
--- ON CONFLICT (name) DO NOTHING;
+-- About page starting content
+INSERT INTO page_content (key, page, section, content, type)
+VALUES
+  ('about-whoami-title', 'about', 'whoami', 'Who Am I?', 'text'),
+  ('about-whoami-subtitle', 'about', 'whoami', 'Always Curious, Forever Learning', 'text'),
+  ('about-whoami-paragraph1', 'about', 'whoami',
+   'Hi, I''m <span class="text-orange-500 font-semibold">Hayden Karas</span>, a Computer Science major from Cranston, Rhode Island. I am currently a freshman at <span class="text-orange-500 font-semibold">Carnegie Mellon University''s</span> School of Computer Science. I''ve always loved learning, from physics to technology to engineering, and began coding in fifth grade. I value my relationships more than anything else in the world, and try to learn something new every single day.',
+   'html'),
+  ('about-whoami-paragraph2', 'about', 'whoami',
+   'I am an excellent communicator, always ready to share my thoughts and ideas with others. I am also a great problem solver, always looking for the most simple and efficient solutions to problems. With this comes being a leader and listener, always ready to understand and respond to thoughts and ideas, as well as provide my own.',
+   'html'),
+  ('about-whoami-image', 'about', 'whoami', '/CrossArmImage.png', 'text'),
+  ('about-background-title', 'about', 'background', 'My Journey', 'text'),
+  ('about-background-subtitle', 'about', 'background', 'Pursuing Growth and Knowledge', 'text'),
+  ('about-background-paragraph1', 'about', 'background',
+   'My journey into the world of technology began with a fascination for how things work and a relentless curiosity to dig deeper. Starting with the idea of creating Minecraft mods in third grade, I started with game development with <span class="text-orange-500 font-semibold">Scratch</span> and then slowly learned new technologies, languages, and frameworks. Entering high school, I began entering technology classes and doing various projects. This resulted in entering the <span class="text-orange-500 font-semibold">SkillsUSA game development competition</span>, winning states two years in a row and placing top 10 nationally twice.',
+   'html'),
+  ('about-background-paragraph2', 'about', 'background',
+   'Aside from Game Development, I also explored full-stack web development through college courses and online courses like <span class="text-orange-500 font-semibold">CS50x</span>. I presented one of my earliest web projects at the University of Rhode Island''s Computer Science Summit. I also was the captain of my school''s math team throughout high school, competing there as well, learning advanced math topics as well as leadership and teamwork skills.',
+   'html'),
+  ('about-background-image', 'about', 'background', '/SkillsUSAImage.jpeg', 'text')
+ON CONFLICT (key) DO UPDATE SET
+  content = EXCLUDED.content,
+  type = EXCLUDED.type;
+
+-- Contact page starting content
+INSERT INTO page_content (key, page, section, content, type)
+VALUES
+  ('contact-content-availableFor', 'contact', 'content',
+   '["Internships and full-time opportunities","Game development projects","Web development collaborations","Research opportunities","Open-source contributions"]',
+   'json'),
+  ('contact-content-links', 'contact', 'content',
+   '[["https://www.linkedin.com/in/haydenkaras/","LinkedIn"],["https://github.com/DTYoda","GitHub"],["/resume.pdf","Resume"]]',
+   'json'),
+  ('contact-content-email', 'contact', 'content', 'hkaras1121@gmail.com', 'text')
+ON CONFLICT (key) DO UPDATE SET
+  content = EXCLUDED.content,
+  type = EXCLUDED.type;
 
